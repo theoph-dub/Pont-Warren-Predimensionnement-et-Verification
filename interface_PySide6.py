@@ -130,6 +130,9 @@ class MainWindow(QMainWindow):
         self.choix_graphique.addItem("Pont - Base")
         self.choix_graphique.addItem("Pont - Efforts")
         self.choix_graphique.addItem("Pont - Déplacements")
+        self.choix_graphique.addItem("Vérif - Déplacements Q")
+        self.choix_graphique.addItem("Vérif - Déplacements ELS")
+        self.choix_graphique.addItem("Vérif - Contraintes N ELU")
 
         # On leur associe des objets QSS
         self.button_variables.setObjectName("sidebar")
@@ -169,6 +172,19 @@ class MainWindow(QMainWindow):
         self.label_FQ.setText("En attente de vérification")
         self.label_ELS.setText("En attente de vérification")
         self.label_CNELU.setText("En attente de vérification")
+
+        # on remet les couleurs de base pour les vérifications
+        self.label_FQ.setProperty("active", "standBy")
+        self.label_FQ.style().unpolish(self.label_FQ)
+        self.label_FQ.style().polish(self.label_FQ)
+
+        self.label_ELS.setProperty("active", "standBy")
+        self.label_ELS.style().unpolish(self.label_ELS)
+        self.label_ELS.style().polish(self.label_ELS)
+
+        self.label_CNELU.setProperty("active", "standBy")
+        self.label_CNELU.style().unpolish(self.label_CNELU)
+        self.label_CNELU.style().polish(self.label_CNELU)
 
     def _choix_graphique(self, text):
 
@@ -216,6 +232,50 @@ class MainWindow(QMainWindow):
                 self.compute_text.setText("Pont avec déplacements calculé")
         except NotImplementedError as err:
             self.compute_text.setText("Structure, Forces, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, forces, supports, section/matériau)")
+
+        try:
+            if text == "Vérif - Déplacements Q":
+                try:
+                    self.largeur = float(self.input_largeur.text())
+                except ValueError as err:
+                    self.compute_text.setText("Valeur de largeur de pont non valide")
+                self.plot._fig_cla()
+                self.pont.ax_plot_deplacement_Q(self.plot.axes, self.largeur)
+                self.plot.figure.tight_layout()
+                self.plot.draw()
+                self.compute_text.setText("Vérification des déplacements Q calculé")
+        except NotImplementedError as err:
+            self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
+
+        try:
+            if text == "Vérif - Déplacements ELS":
+                try:
+                    self.largeur = float(self.input_largeur.text())
+                    self.poid_plancher = float(self.input_poid_plancher.text())
+                except ValueError as err:
+                    self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
+                self.plot._fig_cla()
+                self.pont.ax_plot_deplacement_ELS(self.plot.axes, self.largeur, self.poid_plancher)
+                self.plot.figure.tight_layout()
+                self.plot.draw()
+                self.compute_text.setText("Vérification des déplacements ELS calculé")
+        except NotImplementedError as err:
+            self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
+
+        try:
+            if text == "Vérif - Contraintes N ELU":
+                try:
+                    self.largeur = float(self.input_largeur.text())
+                    self.poid_plancher = float(self.input_poid_plancher.text())
+                except ValueError as err:
+                    self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
+                self.plot._fig_cla()
+                self.pont.ax_plot_contrainte_normale_ELU(self.plot.axes, self.largeur, self.poid_plancher)
+                self.plot.figure.tight_layout()
+                self.plot.draw()
+                self.compute_text.setText("Vérification des contraintes normales ELU calculé")
+        except NotImplementedError as err:
+            self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
 
 
     def _init_content(self):
@@ -327,6 +387,10 @@ class MainWindow(QMainWindow):
     def _init_content_verification(self):
         self.content_verification = QVBoxLayout()
 
+        line0 = QFrame()
+        line0.setFrameShape(QFrame.Shape.HLine)
+        line0.setObjectName("Section")
+
         row0 = QHBoxLayout()
         row0.addWidget(QLabel("Largeur du pont = "))
         self.input_largeur = QLineEdit()
@@ -335,9 +399,13 @@ class MainWindow(QMainWindow):
         self.input_largeur.setMaximumWidth(250)
         row0.addStretch()
 
-        line0 = QFrame()
-        line0.setFrameShape(QFrame.Shape.HLine)
-        line0.setObjectName("Section")
+        row00 = QHBoxLayout()
+        row00.addWidget(QLabel("Poid du plancher du pont = "))
+        self.input_poid_plancher = QLineEdit()
+        self.input_poid_plancher.setPlaceholderText("Poid du plancher du pont en kN/m^2")
+        row00.addWidget(self.input_poid_plancher)
+        self.input_poid_plancher.setMaximumWidth(250)
+        row00.addStretch()
 
         row1 = QHBoxLayout()
         row1.addWidget(QLabel("Type de charge surfacique d'exploitation : "))
@@ -355,7 +423,7 @@ class MainWindow(QMainWindow):
         self.titre_FQ.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
 
         row3 = QHBoxLayout()
-        self.button_FQ = QPushButton("Vérification flèche max sous Q")
+        self.button_FQ = QPushButton("Vérification flèche max sous charges d'exploitation")
         row3.addWidget(self.button_FQ)
         self.button_FQ.clicked.connect(self._verification_fleche_FQ)
         self.label_FQ = QLabel("En attente de vérification")
@@ -372,7 +440,7 @@ class MainWindow(QMainWindow):
         self.titre_ELS.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
 
         row5 = QHBoxLayout()
-        self.button_ELS = QPushButton("Vérification flèche max sous ELS")
+        self.button_ELS = QPushButton("Vérification flèche max sous charge permanantes \n et charges d'exploitation (ELS)")
         row5.addWidget(self.button_ELS)
         self.button_ELS.clicked.connect(self._verification_fleche_ELS)
         self.label_ELS = QLabel("En attente de vérification")
@@ -382,34 +450,27 @@ class MainWindow(QMainWindow):
         self.label_ELS.setObjectName("verification")
 
         row6 = QHBoxLayout()
-        self.titre_CNELU = QLabel("Vérification contraintes normales sous ELU")
+        self.titre_CNELU = QLabel("Contraintes normales sous charge permanantes et charges d'exploitation avec coefficients (ELU)")
         row6.addWidget(self.titre_CNELU)
         self.titre_CNELU.setObjectName("titre")
         self.titre_CNELU.setMaximumHeight(100)
         self.titre_CNELU.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
 
         row7 = QHBoxLayout()
-        row7.addWidget(QLabel("Norme maximale de contrainte normale = "))
-        self.choix_sigma_max = QLineEdit()
-        row7.addWidget(self.choix_sigma_max)
-        self.choix_sigma_max.setMaximumWidth(250)
-        self.choix_sigma_max.setPlaceholderText("132 MPa de base")
-        row7.addStretch()
-
-        row8 = QHBoxLayout()
-        self.button_CNELU = QPushButton("Vérification sigma max sous ELU")
-        row8.addWidget(self.button_CNELU)
+        self.button_CNELU = QPushButton("Vérification sigma max sous charge permanantes \n et charges d'exploitation avec coefficients (ELU)")
+        row7.addWidget(self.button_CNELU)
         self.button_CNELU.clicked.connect(self._verification_CNELU)
         self.label_CNELU = QLabel("En attente de vérification")
         self.label_CNELU.setMaximumHeight(100)
         self.label_CNELU.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        row8.addWidget(self.label_CNELU)
+        row7.addWidget(self.label_CNELU)
         self.label_CNELU.setObjectName("verification")
 
         self.content_verification_layout = QVBoxLayout()
         
         self.content_verification_layout.addWidget(line0)
         self.content_verification_layout.addLayout(row0)
+        self.content_verification_layout.addLayout(row00)
         self.content_verification_layout.addLayout(row1)
         self.content_verification_layout.addLayout(row2)
         self.content_verification_layout.addLayout(row3)
@@ -417,7 +478,6 @@ class MainWindow(QMainWindow):
         self.content_verification_layout.addLayout(row5)
         self.content_verification_layout.addLayout(row6)
         self.content_verification_layout.addLayout(row7)
-        self.content_verification_layout.addLayout(row8)
 
         self.content_verification_widget = QWidget()
         self.content_verification_widget.setLayout(self.content_verification_layout)
@@ -486,6 +546,26 @@ class MainWindow(QMainWindow):
         # On clear le pont pour le reprendre avec les bonnes unités
         self._clear()
 
+        if self.choix_unite_E.currentText() == "MPa":
+            self.input_E.setPlaceholderText("Module d'élasticité du matériau en MPa (ex: 70e3)")
+        elif self.choix_unite_E.currentText() == "GPa":
+            self.input_E.setPlaceholderText("Module d'élasticité du matériau en GPa (ex: 70)")
+
+        if self.choix_unite_rho.currentText() == "kg/m^3":
+            self.input_rho.setPlaceholderText("Masse volumique en kg/m^3 (ex: 2.7e3)")
+        elif self.choix_unite_rho.currentText() == "t/m^3":
+            self.input_rho.setPlaceholderText("Masse volumique en t/m^3 (ex: 2.7)")
+
+        if self.choix_unite_force.currentText() == "N":
+            self.valeur_forceX.setPlaceholderText("Force en x en N (ex: -25e3)")
+            self.valeur_forceY.setPlaceholderText("Force en y en N (ex: -50e3)")
+        elif self.choix_unite_force.currentText() == "kN":
+            self.valeur_forceX.setPlaceholderText("Force en x en kN (ex: -25)")
+            self.valeur_forceY.setPlaceholderText("Force en y en kN (ex: -50)")
+
+        # on appelle la focntion des sections car elle change les placeholder
+        self._choix_section(self.input_choix_section.currentText())
+
 
 
     def _verification_fleche_FQ(self):
@@ -499,17 +579,19 @@ class MainWindow(QMainWindow):
                 maxFQ, is_good = self.pont.verification_fleche_Q(self.largeur)
             
             elif self.choix_charge.currentText() == "Selon la longueur":
-                charge_exploitation = (2 + 120/(self.L+30))*10**3
+                charge_exploitation = (2 + 120/(self.L+30))
                 maxFQ, is_good = self.pont.verification_fleche_Q(self.largeur, charge_exploitation)
 
+            maxi = self.pont.L/self.pont.denominateur_Q
+
             if is_good == True:
-                self.label_FQ.setText(f"Flèche maximum : {maxFQ*10**3:.2f} mm ce qui est dans les normes")
+                self.label_FQ.setText(f"Flèche maximum : {maxFQ*10**3:.2f} mm < {maxi*10**3:.2f} mm")
 
                 self.label_FQ.setProperty("active", "true")
                 self.label_FQ.style().unpolish(self.label_FQ)
                 self.label_FQ.style().polish(self.label_FQ)
             else:
-                self.label_FQ.setText(f"Flèche maximum : {maxFQ*10**3:.2f} mm ce qui n'est PAS dans les normes")
+                self.label_FQ.setText(f"Flèche maximum : {maxFQ*10**3:.2f} mm > {maxi*10**3:.2f} mm")
 
                 self.label_FQ.setProperty("active", "false")
                 self.label_FQ.style().unpolish(self.label_FQ)
@@ -523,76 +605,70 @@ class MainWindow(QMainWindow):
     def _verification_fleche_ELS(self):
         try:
             self.largeur = float(self.input_largeur.text())
+            self.poid_plancher = float(self.input_poid_plancher.text())
         except ValueError as err:
-            self.compute_text.setText("Valeur de la largeur non valide")
+            self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
             
         try:
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur)
+                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poid_plancher)
             
             elif self.choix_charge.currentText() == "Selon la longueur":
-                charge_exploitation = (2 + 120/(self.L+30))*10**3
-                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, charge_exploitation)
+                charge_exploitation = (2 + 120/(self.L+30))
+                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poid_plancher, charge_exploitation)
+
+            maxi = self.pont.L/self.pont.denominateur_ELS
 
             if is_good == True:
-                self.label_ELS.setText(f"Flèche maximum : {maxFELS*10**3:.2f} mm ce qui est dans les normes")
+                self.label_ELS.setText(f"Flèche maximum : {maxFELS*10**3:.2f} mm < {maxi*10**3:.2f} mm")
 
                 self.label_ELS.setProperty("active", "true")
                 self.label_ELS.style().unpolish(self.label_ELS)
                 self.label_ELS.style().polish(self.label_ELS)
             else:
-                self.label_ELS.setText(f"Flèche maximum : {maxFELS*10**3:.2f} mm ce qui n'est PAS dans les normes")
+                self.label_ELS.setText(f"Flèche maximum : {maxFELS*10**3:.2f} mm > {maxi*10**3:.2f} mm")
 
                 self.label_ELS.setProperty("active", "false")
                 self.label_ELS.style().unpolish(self.label_ELS)
                 self.label_ELS.style().polish(self.label_ELS)
 
         except AttributeError as err:
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, la structure, les supports, les matériaux et les sections")
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
 
 
 
     def _verification_CNELU(self):
         try:
             self.largeur = float(self.input_largeur.text())
+            self.poid_plancher = float(self.input_poid_plancher.text())
         except ValueError as err:
-            self.compute_text.setText("Valeur de la largeur non valide")
-
-        if self.choix_sigma_max.text() != "":
-            try:
-                self.sigmaMax = float(self.choix_sigma_max.text())
-            except ValueError as err:
-                self.compute_text.setText("Valeur de la contrainte normale maximum non valide")
+            self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
                 
         try:
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                if self.choix_sigma_max.text() != "":
-                    maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, sigma_norme=self.sigmaMax)
-                else:
-                    maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur)
+                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poid_plancher)
             
             elif self.choix_charge.currentText() == "Selon la longueur":
                 charge_exploitation = (2 + 120/(self.L+30))*10**3
-                if self.choix_sigma_max.text() != "":
-                    maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, charge_exploitation, self.sigmaMax)
-                else:
-                    maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, charge_exploitation)
+                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poid_plancher, charge_exploitation)
 
+            maxi = self.pont.sigma_max_ELU
+            
             if is_good == True:
-                self.label_CNELU.setText(f"Sigma maximum : {maxsigma:.2f} MPa ce qui est dans les normes")
+                self.label_CNELU.setText(f"Sigma maximum : {maxsigma:.2f} MPa < {maxi:.2f} MPa")
 
                 self.label_CNELU.setProperty("active", "true")
                 self.label_CNELU.style().unpolish(self.label_CNELU)
                 self.label_CNELU.style().polish(self.label_CNELU)
             else:
-                self.label_CNELU.setText(f"Sigma maximum : {maxsigma:.2f} MPa ce qui n'est PAS dans les normes")
+                self.label_CNELU.setText(f"Sigma maximum : {maxsigma:.2f} MPa > {maxi:.2f} MPa")
 
                 self.label_CNELU.setProperty("active", "false")
                 self.label_CNELU.style().unpolish(self.label_CNELU)
                 self.label_CNELU.style().polish(self.label_CNELU)
 
         except AttributeError as err:
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, la structure, les supports, les matériaux et les sections")
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
 
 
 
@@ -626,7 +702,7 @@ class MainWindow(QMainWindow):
         row13 = QHBoxLayout()
         row13.addWidget(QLabel("h3 ="))
         self.input_h3 = QLineEdit()
-        self.input_h3.setPlaceholderText("hauteur de l'extrémité droite de la parabole non sym (ex: 3.5)")
+        self.input_h3.setPlaceholderText("hauteur de l'extrémité droite de la parabole non sym en m (ex: 3.5)")
         row13.addWidget(self.input_h3)   
         
         # Entrée texte L
@@ -668,14 +744,14 @@ class MainWindow(QMainWindow):
         row17 = QHBoxLayout()
         row17.addWidget(QLabel("d ="))
         self.input_d = QLineEdit()
-        self.input_d.setPlaceholderText("diamètre du tube")
+        self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
         row17.addWidget(self.input_d) 
 
         # Entrée texte e
         row18 = QHBoxLayout()
         row18.addWidget(QLabel("e ="))
         self.input_e = QLineEdit()
-        self.input_e.setPlaceholderText("épaisseur du tube")
+        self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
         row18.addWidget(self.input_e) 
 
         # Entrée texte h
@@ -690,14 +766,14 @@ class MainWindow(QMainWindow):
         row20 = QHBoxLayout()
         row20.addWidget(QLabel("E ="))
         self.input_E = QLineEdit()
-        self.input_E.setPlaceholderText("Module d'elasticité du matériau")
+        self.input_E.setPlaceholderText("Module d'elasticité du matériau en MPa (ex: 70e3)")
         row20.addWidget(self.input_E) 
 
         # Entrée texte rho
         row21 = QHBoxLayout()
         row21.addWidget(QLabel("rho ="))
         self.input_rho = QLineEdit()
-        self.input_rho.setPlaceholderText("Masse volumique")
+        self.input_rho.setPlaceholderText("Masse volumique en kg/m^3 (ex: 2.7e3)")
         row21.addWidget(self.input_rho) 
 
         # Bouton ajouter les matériaux/sections
@@ -741,16 +817,27 @@ class MainWindow(QMainWindow):
 
 
     def _choix_section(self, text):
-        if text == "tube":
+        if text == "tube" and self.choix_unite_section.currentText() == "mm":
             self.input_h.setDisabled(True)
             self.input_h.setPlaceholderText("Vous êtes en section de type tube")
-            self.input_d.setPlaceholderText("diamètre du tube")
-            self.input_e.setPlaceholderText("épaisseur du tube")
-        elif text == "rectangle":
+            self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
+            self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
+        elif text == "rectangle" and self.choix_unite_section.currentText() == "mm":
             self.input_h.setDisabled(False)
-            self.input_h.setPlaceholderText("largeur du rectangle")
-            self.input_d.setPlaceholderText("longueur du rectangle")
-            self.input_e.setPlaceholderText("épaisseur du rectangle")
+            self.input_h.setPlaceholderText("largeur du rectangle en mm (ex: 150)")
+            self.input_d.setPlaceholderText("longueur du rectangle en mm (ex: 200)")
+            self.input_e.setPlaceholderText("épaisseur du rectangle en mm (ex: 10)")
+
+        if text == "tube" and self.choix_unite_section.currentText() == "m":
+            self.input_h.setDisabled(True)
+            self.input_h.setPlaceholderText("Vous êtes en section de type tube")
+            self.input_d.setPlaceholderText("diamètre du tube en m (ex: 0.2)")
+            self.input_e.setPlaceholderText("épaisseur du tube en m (ex: 8e-3)")
+        elif text == "rectangle" and self.choix_unite_section.currentText() == "m":
+            self.input_h.setDisabled(False)
+            self.input_h.setPlaceholderText("largeur du rectangle en m (ex: 0.15)")
+            self.input_d.setPlaceholderText("longueur du rectangle en m (ex: 0.2)")
+            self.input_e.setPlaceholderText("épaisseur du rectangle en m (ex: 1e-2)")
 
     def _add_material_section(self):
         
@@ -828,14 +915,14 @@ class MainWindow(QMainWindow):
         row2_1 = QHBoxLayout()
         row2_1.addWidget(QLabel("Valeur en X : "))
         self.valeur_forceX = QLineEdit()
-        self.valeur_forceX.setPlaceholderText("Force en x")
+        self.valeur_forceX.setPlaceholderText("Force en x en N (ex: -25e3)")
         row2_1.addWidget(self.valeur_forceX)
         
         # Valeur en y
         row2_2 = QHBoxLayout()
         row2_2.addWidget(QLabel("Valeur en Y : "))
         self.valeur_forceY = QLineEdit()
-        self.valeur_forceY.setPlaceholderText("Force en y")
+        self.valeur_forceY.setPlaceholderText("Force en y en N (ex: -50e3)")
         row2_2.addWidget(self.valeur_forceY)
 
         # Bouton pour ajouter
@@ -1140,6 +1227,9 @@ if __name__ == "__main__":
                       }
                     QLabel#verification[active="false"] {
                       border: 2px solid #F4A6A6;
+                      }
+                    QLabel#verification[active="standBy"] {
+                      border: 2px solid transparent;
                       }
                     
                     QLabel#materiau_section {
