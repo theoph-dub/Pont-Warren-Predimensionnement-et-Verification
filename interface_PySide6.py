@@ -44,7 +44,6 @@ class MainWindow(QMainWindow):
         self.resize(1300, 800)
 
         # ---- Valeurs par défaut
-        self.forces = {}
         self.supports = {}
         self.pont = Warren()
 
@@ -90,11 +89,7 @@ class MainWindow(QMainWindow):
         self.compute_text.setObjectName("compute_text")
         self.compute_text.setWordWrap(True) # Retours à la ligne
 
-        self.button_compute_noeuds = QPushButton("Calculer noeuds")
-        self.button_compute_noeuds.clicked.connect(self._compute_noeuds)
-        self.button_compute_noeuds.setObjectName("compute")
-
-        self.button_compute = QPushButton("Calculer")
+        self.button_compute = QPushButton("Calculer structure")
         self.button_compute.clicked.connect(self._compute)
         self.button_compute.setObjectName("compute")
 
@@ -117,7 +112,6 @@ class MainWindow(QMainWindow):
         self.sidebar_compute.setContentsMargins(10, 20, 10, 20)
 
         self.sidebar_compute.addWidget(self.compute_text)
-        self.sidebar_compute.addWidget(self.button_compute_noeuds)
         self.sidebar_compute.addWidget(self.button_compute)
         self.sidebar_compute.addWidget(self.button_clear)
 
@@ -126,10 +120,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.sidebar_widget)
 
         # Ajout des options dans le menu déroulant
-        self.choix_graphique.addItem("Pont - noeuds")
         self.choix_graphique.addItem("Pont - Base")
-        self.choix_graphique.addItem("Pont - Efforts")
-        self.choix_graphique.addItem("Pont - Déplacements")
         self.choix_graphique.addItem("Vérif - Déplacements Q")
         self.choix_graphique.addItem("Vérif - Déplacements ELS")
         self.choix_graphique.addItem("Vérif - Contraintes N ELU")
@@ -146,25 +137,17 @@ class MainWindow(QMainWindow):
     def _clear(self):
         # Redéfinition du pont
         self.pont = Warren(self.choix_type.currentText())
-        self.pont.unites(self.choix_unite_E.currentText(), self.choix_unite_rho.currentText(), self.choix_unite_section.currentText(), self.choix_unite_force.currentText())
+        self.pont.unites(self.choix_unite_E.currentText(), self.choix_unite_rho.currentText(), self.choix_unite_section.currentText())
 
         # Clear le plot
         self.plot._fig_cla()
+        self.plot.draw()
 
         # On remet tous par défaut
         self.compute_text.setText("Pont réinitialisé")
-        self.choix_noeud_force.clear()
-        self.choix_noeud_support.clear()
-        self.forces_actuel.setText("Pas de forces")
-        self.supports_actuel.setText("Pas de supports")
-        self.forces = {}
         self.supports = {}
 
         # Textes vides
-        self.text_forces = ""
-        self.text_support = ""
-        self.forces_actuel.setText("Pas de forces")
-        self.supports_actuel.setText("Pas de supports")
         self.up_text = ""
         self.mid_text = ""
         self.bot_text = ""
@@ -194,57 +177,27 @@ class MainWindow(QMainWindow):
                 ax.remove()
 
         try:
-            if text == "Pont - noeuds":
+            if text == "Pont - Base":
                 self.plot._fig_cla()
                 self.pont.ax_plot_pont_noeuds(self.plot.axes)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Pont avec noeuds et poutres calculé")
-        except NotImplementedError as err:
+        except (NotImplementedError, AttributeError):
             self.compute_text.setText("Structure non implémentée (h1, h2, h3, L, n)")
-
-        try:
-            if text == "Pont - Base":
-                self.plot._fig_cla()
-                self.pont.ax_plot_pont(self.plot.axes)
-                self.plot.figure.tight_layout()
-                self.plot.draw()
-                self.compute_text.setText("Pont avec forces et supports calculé")
-        except NotImplementedError as err:
-            self.compute_text.setText("Structure, Forces ou Supports non implémentée (h1, h2, h3, L, n, forces, supports)")
-
-        try:
-            if text == "Pont - Efforts":
-                self.plot._fig_cla()
-                self.pont.ax_plot_efforts(self.plot.axes)
-                self.plot.figure.tight_layout()
-                self.plot.draw()
-                self.compute_text.setText("Pont avec efforts calculé")
-        except NotImplementedError as err:
-            self.compute_text.setText("Structure, Forces, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, forces, supports, section/matériau)")
-
-        try:
-            if text == "Pont - Déplacements":
-                self.plot._fig_cla()
-                self.pont.ax_plot_deplacements(self.plot.axes)
-                self.plot.figure.tight_layout()
-                self.plot.draw()
-                self.compute_text.setText("Pont avec déplacements calculé")
-        except NotImplementedError as err:
-            self.compute_text.setText("Structure, Forces, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, forces, supports, section/matériau)")
 
         try:
             if text == "Vérif - Déplacements Q":
                 try:
                     self.largeur = float(self.input_largeur.text())
-                except ValueError as err:
+                except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont non valide")
                 self.plot._fig_cla()
                 self.pont.ax_plot_deplacement_Q(self.plot.axes, self.largeur)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des déplacements Q calculé")
-        except NotImplementedError as err:
+        except (NotImplementedError, AttributeError):
             self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
 
         try:
@@ -252,14 +205,14 @@ class MainWindow(QMainWindow):
                 try:
                     self.largeur = float(self.input_largeur.text())
                     self.poid_plancher = float(self.input_poid_plancher.text())
-                except ValueError as err:
+                except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
                 self.plot._fig_cla()
                 self.pont.ax_plot_deplacement_ELS(self.plot.axes, self.largeur, self.poid_plancher)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des déplacements ELS calculé")
-        except NotImplementedError as err:
+        except (NotImplementedError, AttributeError):
             self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
 
         try:
@@ -267,14 +220,14 @@ class MainWindow(QMainWindow):
                 try:
                     self.largeur = float(self.input_largeur.text())
                     self.poid_plancher = float(self.input_poid_plancher.text())
-                except ValueError as err:
+                except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
                 self.plot._fig_cla()
                 self.pont.ax_plot_contrainte_normale_ELU(self.plot.axes, self.largeur, self.poid_plancher)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des contraintes normales ELU calculé")
-        except NotImplementedError as err:
+        except (NotImplementedError, AttributeError):
             self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
 
 
@@ -404,7 +357,7 @@ class MainWindow(QMainWindow):
         self.input_poid_plancher = QLineEdit()
         self.input_poid_plancher.setPlaceholderText("Poid du plancher du pont en kN/m^2")
         row00.addWidget(self.input_poid_plancher)
-        self.input_poid_plancher.setMaximumWidth(250)
+        self.input_poid_plancher.setMaximumWidth(300)
         row00.addStretch()
 
         row1 = QHBoxLayout()
@@ -522,20 +475,10 @@ class MainWindow(QMainWindow):
         row3.addStretch()
         self.choix_unite_section.currentTextChanged.connect(self._changement_unite)
 
-        row4 = QHBoxLayout()
-        row4.addWidget(QLabel("Unité de mesure des forces F : "))
-        self.choix_unite_force = QComboBox()
-        row4.addWidget(self.choix_unite_force)
-        self.choix_unite_force.addItem("N")
-        self.choix_unite_force.addItem("kN")
-        row4.addStretch()
-        self.choix_unite_force.currentTextChanged.connect(self._changement_unite)
-
         self.content_unites.addWidget(line0)
         self.content_unites.addLayout(row1)
         self.content_unites.addLayout(row2)
         self.content_unites.addLayout(row3)
-        self.content_unites.addLayout(row4)
 
         self.content_unites.setSpacing(10)
         self.content_unites.setContentsMargins(28, 10, 28, 10)
@@ -556,13 +499,6 @@ class MainWindow(QMainWindow):
         elif self.choix_unite_rho.currentText() == "t/m^3":
             self.input_rho.setPlaceholderText("Masse volumique en t/m^3 (ex: 2.7)")
 
-        if self.choix_unite_force.currentText() == "N":
-            self.valeur_forceX.setPlaceholderText("Force en x en N (ex: -25e3)")
-            self.valeur_forceY.setPlaceholderText("Force en y en N (ex: -50e3)")
-        elif self.choix_unite_force.currentText() == "kN":
-            self.valeur_forceX.setPlaceholderText("Force en x en kN (ex: -25)")
-            self.valeur_forceY.setPlaceholderText("Force en y en kN (ex: -50)")
-
         # on appelle la focntion des sections car elle change les placeholder
         self._choix_section(self.input_choix_section.currentText())
 
@@ -571,7 +507,7 @@ class MainWindow(QMainWindow):
     def _verification_fleche_FQ(self):
         try:
             self.largeur = float(self.input_largeur.text())
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeur de la largeur non valide")
             
         try:
@@ -597,7 +533,7 @@ class MainWindow(QMainWindow):
                 self.label_FQ.style().unpolish(self.label_FQ)
                 self.label_FQ.style().polish(self.label_FQ)
 
-        except AttributeError as err:
+        except AttributeError:
             self.compute_text.setText("Vous devez implémenter la largeur du pont, la structure, les supports, les matériaux et les sections")
 
 
@@ -606,7 +542,7 @@ class MainWindow(QMainWindow):
         try:
             self.largeur = float(self.input_largeur.text())
             self.poid_plancher = float(self.input_poid_plancher.text())
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
             
         try:
@@ -632,7 +568,7 @@ class MainWindow(QMainWindow):
                 self.label_ELS.style().unpolish(self.label_ELS)
                 self.label_ELS.style().polish(self.label_ELS)
 
-        except AttributeError as err:
+        except AttributeError:
             self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
 
 
@@ -641,7 +577,7 @@ class MainWindow(QMainWindow):
         try:
             self.largeur = float(self.input_largeur.text())
             self.poid_plancher = float(self.input_poid_plancher.text())
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
                 
         try:
@@ -667,7 +603,7 @@ class MainWindow(QMainWindow):
                 self.label_CNELU.style().unpolish(self.label_CNELU)
                 self.label_CNELU.style().polish(self.label_CNELU)
 
-        except AttributeError as err:
+        except AttributeError:
             self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
 
 
@@ -719,79 +655,7 @@ class MainWindow(QMainWindow):
         self.input_n.setPlaceholderText("nombre de noeuds sur la partie inférieure du pont (ex: 7)")
         row15.addWidget(self.input_n)  
 
-        # Entrée choix section
-        row16 = QHBoxLayout()
-        row16.addWidget(QLabel("Type de section :"))
-        self.input_choix_section = QComboBox()
-        self.input_choix_section.addItem("tube")
-        self.input_choix_section.addItem("rectangle")
-        row16.addWidget(self.input_choix_section) 
-        self.input_choix_endroit = QComboBox()
-        self.input_choix_endroit.addItem("inférieures")
-        self.input_choix_endroit.addItem("diagonales")
-        self.input_choix_endroit.addItem("supérieures")
-        self.input_choix_endroit.addItem("toutes")
-        row16.addWidget(QLabel(" aux poutres :"))
-        row16.addWidget(self.input_choix_endroit)
-        row16.addStretch()
-        self.input_choix_section.currentTextChanged.connect(self._choix_section)
-
-        line16 = QFrame()
-        line16.setFrameShape(QFrame.Shape.HLine)
-        line16.setObjectName("Section")
-
-        # Entrée texte d
-        row17 = QHBoxLayout()
-        row17.addWidget(QLabel("d ="))
-        self.input_d = QLineEdit()
-        self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
-        row17.addWidget(self.input_d) 
-
-        # Entrée texte e
-        row18 = QHBoxLayout()
-        row18.addWidget(QLabel("e ="))
-        self.input_e = QLineEdit()
-        self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
-        row18.addWidget(self.input_e) 
-
-        # Entrée texte h
-        row19 = QHBoxLayout()
-        row19.addWidget(QLabel("h ="))
-        self.input_h = QLineEdit()
-        self.input_h.setPlaceholderText("Vous êtes en type de section tube")
-        row19.addWidget(self.input_h) 
-        self.input_h.setDisabled(True)
-
-        # Entrée texte E
-        row20 = QHBoxLayout()
-        row20.addWidget(QLabel("E ="))
-        self.input_E = QLineEdit()
-        self.input_E.setPlaceholderText("Module d'elasticité du matériau en MPa (ex: 70e3)")
-        row20.addWidget(self.input_E) 
-
-        # Entrée texte rho
-        row21 = QHBoxLayout()
-        row21.addWidget(QLabel("rho ="))
-        self.input_rho = QLineEdit()
-        self.input_rho.setPlaceholderText("Masse volumique en kg/m^3 (ex: 2.7e3)")
-        row21.addWidget(self.input_rho) 
-
-        # Bouton ajouter les matériaux/sections
-        row22 = QHBoxLayout()
-        self.compute_section = QPushButton("Ajouter matériau/section")
-        row22.addWidget(self.compute_section) 
-        self.compute_section.clicked.connect(self._add_material_section)
-
-        # Affichage des matériaux/sections
-        row23 = QHBoxLayout()
-        self.up_text = ""
-        self.mid_text = ""
-        self.bot_text = ""
-        self.materiau_section_actuel = QLabel("Poutres supérieures : "+self.up_text+"\n"+"Poutres diagonales : "+self.mid_text+"\n"+"Poutres inférieures : "+self.bot_text)
-        row23.addWidget(self.materiau_section_actuel)
-        self.materiau_section_actuel.setWordWrap(True)
-        self.materiau_section_actuel.setMaximumHeight(100)  
-        self.materiau_section_actuel.setObjectName("materiau_section")
+        
         
 
         # Ajoute au premier tableau
@@ -802,15 +666,6 @@ class MainWindow(QMainWindow):
         self.tableau1.addLayout(row13)
         self.tableau1.addLayout(row14)
         self.tableau1.addLayout(row15)
-        self.tableau1.addWidget(line16)
-        self.tableau1.addLayout(row16)
-        self.tableau1.addLayout(row17)
-        self.tableau1.addLayout(row18)
-        self.tableau1.addLayout(row19)
-        self.tableau1.addLayout(row20)
-        self.tableau1.addLayout(row21)
-        self.tableau1.addLayout(row22)
-        self.tableau1.addLayout(row23)
 
         # Appel des fonctions qui vont lier nos entrées
         self._init_choix_type()
@@ -896,127 +751,98 @@ class MainWindow(QMainWindow):
                 self.bot_text = f"E = {self.pont.E_vector[2]:.1f} MPa, A = {self.pont.A_vector[2]:.1f} mm^2 et rho = {self.pont.rho_vector[0]:.1f} kg/m^3."
                 self.materiau_section_actuel.setText("Poutres supérieures : "+self.up_text+"\n"+"Poutres diagonales : "+self.mid_text+"\n"+"Poutres inférieures : "+self.bot_text)
 
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeurs de E, rho, d, h ou e invalide.")
 
     def _content_variables_tab2(self):
-        # Menu déroulant noeud force
-        row2_0 = QHBoxLayout()
-        row2_0.addWidget(QLabel("Force ponctuelle au noeud : "))
-        self.choix_noeud_force = QComboBox()
-        row2_0.addWidget(self.choix_noeud_force)
-        row2_0.addStretch()
 
-        line2_0 = QFrame()
-        line2_0.setFrameShape(QFrame.Shape.HLine)
-        line2_0.setObjectName("Section")
+        line0 = QFrame()
+        line0.setFrameShape(QFrame.Shape.HLine)
+        line0.setObjectName("Section")
 
-        # Valeur en x
-        row2_1 = QHBoxLayout()
-        row2_1.addWidget(QLabel("Valeur en X : "))
-        self.valeur_forceX = QLineEdit()
-        self.valeur_forceX.setPlaceholderText("Force en x en N (ex: -25e3)")
-        row2_1.addWidget(self.valeur_forceX)
+        # Entrée choix section
+        row16 = QHBoxLayout()
+        row16.addWidget(QLabel("Type de section :"))
+        self.input_choix_section = QComboBox()
+        self.input_choix_section.addItem("tube")
+        self.input_choix_section.addItem("rectangle")
+        row16.addWidget(self.input_choix_section) 
+        self.input_choix_endroit = QComboBox()
+        self.input_choix_endroit.addItem("toutes")
+        self.input_choix_endroit.addItem("inférieures")
+        self.input_choix_endroit.addItem("diagonales")
+        self.input_choix_endroit.addItem("supérieures")
+        row16.addWidget(QLabel(" aux poutres :"))
+        row16.addWidget(self.input_choix_endroit)
+        row16.addStretch()
+        self.input_choix_section.currentTextChanged.connect(self._choix_section)
+
+        # Entrée texte d
+        row17 = QHBoxLayout()
+        row17.addWidget(QLabel("d ="))
+        self.input_d = QLineEdit()
+        self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
+        row17.addWidget(self.input_d) 
+
+        # Entrée texte e
+        row18 = QHBoxLayout()
+        row18.addWidget(QLabel("e ="))
+        self.input_e = QLineEdit()
+        self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
+        row18.addWidget(self.input_e) 
+
+        # Entrée texte h
+        row19 = QHBoxLayout()
+        row19.addWidget(QLabel("h ="))
+        self.input_h = QLineEdit()
+        self.input_h.setPlaceholderText("Vous êtes en type de section tube")
+        row19.addWidget(self.input_h) 
+        self.input_h.setDisabled(True)
+
+        # Entrée texte E
+        row20 = QHBoxLayout()
+        row20.addWidget(QLabel("E ="))
+        self.input_E = QLineEdit()
+        self.input_E.setPlaceholderText("Module d'elasticité du matériau en MPa (ex: 70e3)")
+        row20.addWidget(self.input_E) 
+
+        # Entrée texte rho
+        row21 = QHBoxLayout()
+        row21.addWidget(QLabel("rho ="))
+        self.input_rho = QLineEdit()
+        self.input_rho.setPlaceholderText("Masse volumique en kg/m^3 (ex: 2.7e3)")
+        row21.addWidget(self.input_rho) 
+
+        # Bouton ajouter les matériaux/sections
+        row22 = QHBoxLayout()
+        self.compute_section = QPushButton("Ajouter matériau/section")
+        row22.addWidget(self.compute_section) 
+        self.compute_section.clicked.connect(self._add_material_section)
+
+        # Affichage des matériaux/sections
+        row23 = QHBoxLayout()
+        self.up_text = ""
+        self.mid_text = ""
+        self.bot_text = ""
+        self.materiau_section_actuel = QLabel("Poutres supérieures : "+self.up_text+"\n"+"Poutres diagonales : "+self.mid_text+"\n"+"Poutres inférieures : "+self.bot_text)
+        row23.addWidget(self.materiau_section_actuel)
+        self.materiau_section_actuel.setWordWrap(True)
+        self.materiau_section_actuel.setMaximumHeight(100)  
+        self.materiau_section_actuel.setObjectName("materiau_section")
+
         
-        # Valeur en y
-        row2_2 = QHBoxLayout()
-        row2_2.addWidget(QLabel("Valeur en Y : "))
-        self.valeur_forceY = QLineEdit()
-        self.valeur_forceY.setPlaceholderText("Force en y en N (ex: -50e3)")
-        row2_2.addWidget(self.valeur_forceY)
-
-        # Bouton pour ajouter
-        row2_3 = QHBoxLayout()
-        self.ajouter_force = QPushButton("Ajouter la force ponctuelle")
-        row2_3.addWidget(self.ajouter_force)
-
-        # Affichage forces actuelles
-        row2_4 = QHBoxLayout()
-        row2_4.addWidget(QLabel("Forces actuelles : "))
-        self.forces_actuel = QLabel("Pas de forces")
-        self.forces_actuel.setWordWrap(True)
-        row2_4.addWidget(self.forces_actuel)
-        self.text_forces = ""
-        row2_4.addStretch()
-
-        # Menu déroulant noeud support
-        row2_5 = QHBoxLayout()
-        row2_5.addWidget(QLabel("Support au noeud : "))
-        self.choix_noeud_support = QComboBox()
-        row2_5.addWidget(self.choix_noeud_support)
-        row2_5.addStretch()
-
-        line2_5 = QFrame()
-        line2_5.setFrameShape(QFrame.Shape.HLine)
-        line2_5.setObjectName("Section")
-
-        # Type de support
-        row2_6 = QHBoxLayout()
-        row2_6.addWidget(QLabel("Support de type : "))
-        self.type_support = QComboBox()
-        row2_6.addWidget(self.type_support)
-        row2_6.addStretch()
-
-        # Bouton pour ajouter
-        row2_7 = QHBoxLayout()
-        self.ajouter_support = QPushButton("Ajouter le support")
-        row2_7.addWidget(self.ajouter_support)
-
-        # Affichage supports actuels
-        row2_8 = QHBoxLayout()
-        row2_8.addWidget(QLabel("Supports actuels : "))
-        self.supports_actuel = QLabel("Pas de supports")
-        self.supports_actuel.setWordWrap(True)
-        row2_8.addWidget(self.supports_actuel)
-        self.text_support = ""
-        row2_8.addStretch()
 
         # Ajout au second tableau
-        self.tableau2.addWidget(line2_0)
-        self.tableau2.addLayout(row2_0)
-        self.tableau2.addLayout(row2_1)
-        self.tableau2.addLayout(row2_2)
-        self.tableau2.addLayout(row2_3)
-        self.tableau2.addLayout(row2_4)
-        self.tableau2.addWidget(line2_5)
-        self.tableau2.addLayout(row2_5)
-        self.tableau2.addLayout(row2_6)
-        self.tableau2.addLayout(row2_7)
-        self.tableau2.addLayout(row2_8)
+        self.tableau2.addWidget(line0)
+        self.tableau2.addLayout(row16)
+        self.tableau2.addLayout(row17)
+        self.tableau2.addLayout(row18)
+        self.tableau2.addLayout(row19)
+        self.tableau2.addLayout(row20)
+        self.tableau2.addLayout(row21)
+        self.tableau2.addLayout(row22)
+        self.tableau2.addLayout(row23)
 
-        # Fonction des menus
-        self.ajouter_force.clicked.connect(self._ajouter_force)
-        self.ajouter_support.clicked.connect(self._ajouter_support)
-        self.type_support.addItem("Articulation")
-        self.type_support.addItem("Appui simple")
-
-    def _ajouter_support(self):
-        i = self.choix_noeud_support.currentIndex()
-        noeud = self.pont.nodes[i]
-        support = self.type_support.currentText()
-        noeud = (noeud[0], noeud[1])
-        self.supports.update({noeud : support})
-        self.text_support += "Support "+self.type_support.currentText()+f" au noeud ({noeud[0]:.1f}, {noeud[1]:.1f})"+"\n"
-        self.supports_actuel.setText(self.text_support)
-        self.pont.set_supports(self.supports)
-
-    def _ajouter_force(self):
-        i = self.choix_noeud_force.currentIndex()
-        noeud = self.pont.nodes[i]
-        try:
-            Fx = float(self.valeur_forceX.text())
-            Fy = float(self.valeur_forceY.text())
-            noeud = (noeud[0], noeud[1])
-            force = (Fx, Fy)
-            self.forces.update({noeud : force})
-            if self.pont.unite_E == 10**3:
-                self.text_forces += f"Force de ({Fx:.1f}, {Fy:.1f}) kN au noeud ({noeud[0]:.1f}, {noeud[1]:.1f})"+"\n"
-            else:
-                self.text_forces += f"Force de ({Fx:.1f}, {Fy:.1f}) N au noeud ({noeud[0]:.1f}, {noeud[1]:.1f})"+"\n"
-            self.forces_actuel.setText(self.text_forces)
-            self.pont.set_forces_punc(self.forces)
-        except ValueError as err:
-            self.compute_text.setText("Valeur de force non valide")
           
 
     def _init_choix_type(self):
@@ -1058,44 +884,44 @@ class MainWindow(QMainWindow):
 
         try:
             self.L = float(self.input_L.text())
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeur de L non valide")
 
         try:
             self.n = int(self.input_n.text())
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeur de n non valide")
         
         try:
             self.h1 = float(self.input_h1.text())
-        except ValueError as err:
+        except ValueError:
             self.compute_text.setText("Valeur de h1 non valide")
 
         if self.choix_type.currentText() == "rectangle":
             
             try:
                 self.pont.set_structure(self.L, self.n, self.h1)
-                self.pont.set_forces_punc(self.forces)
+                self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
                 self.pont.set_supports(self.supports)
 
                 self._choix_graphique(self.choix_graphique.currentText())
 
-            except AttributeError as err:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, n ainsi que les forces, les supports, les matériaux et les sections")
+            except AttributeError:
+                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, n ainsi que les matériaux et les sections")
 
         elif self.choix_type.currentText() == "parabole sym":
             try:
                 try:
                     self.h2 = float(self.input_h2.text())
                     self.pont.set_structure(self.L, self.n, self.h1, self.h2)
-                    self.pont.set_forces_punc(self.forces)
+                    self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
                     self.pont.set_supports(self.supports)
 
                     self._choix_graphique(self.choix_graphique.currentText())
-                except ValueError as err:
+                except ValueError:
                     self.compute_text.setText("Valeur de h2 non valide")
-            except AttributeError as err:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, n ainsi que les forces, les supports, les matériaux et les sections")
+            except AttributeError:
+                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, n ainsi que les matériaux et les sections")
 
         elif self.choix_type.currentText() == "parabole non sym":
             try:
@@ -1103,71 +929,14 @@ class MainWindow(QMainWindow):
                     self.h2 = float(self.input_h2.text())
                     self.h3 = float(self.input_h3.text())
                     self.pont.set_structure(self.L, self.n, self.h1, self.h2, self.h3)
-                    self.pont.set_forces_punc(self.forces)
+                    self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
                     self.pont.set_supports(self.supports)
 
                     self._choix_graphique(self.choix_graphique.currentText())
-                except ValueError as err:
+                except ValueError:
                     self.compute_text.setText("Valeur de h2 ou h3 non valide")
-            except AttributeError as err:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, h3, n ainsi que les forces, les supports, les matériaux et les sections")
-
-    def _compute_noeuds(self):
-
-        # Clear les comboBox
-        self.choix_noeud_force.clear()
-        self.choix_noeud_support.clear()
-
-        try:
-            self.L = float(self.input_L.text())
-        except ValueError as err:
-            self.compute_text.setText("Valeur de L non valide")
-
-        try:
-            self.n = int(self.input_n.text())
-        except ValueError as err:
-            self.compute_text.setText("Valeur de n non valide")
-        
-        try:
-            self.h1 = float(self.input_h1.text())
-        except ValueError as err:
-            self.compute_text.setText("Valeur de h1 non valide")
-
-        if self.choix_type.currentText() == "rectangle":
-            
-            try:
-                self.pont.set_structure(self.L, self.n, self.h1)
-                self._choix_graphique(self.choix_graphique.currentText())
-
-            except AttributeError as err:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1 et n")
-
-        elif self.choix_type.currentText() == "parabole sym":
-            try:
-                try:
-                    self.h2 = float(self.input_h2.text())
-                    self.pont.set_structure(self.L, self.n, self.h1, self.h2)
-                    self._choix_graphique(self.choix_graphique.currentText())
-                except ValueError as err:
-                    self.compute_text.setText("Valeur de h2 non valide")
-            except AttributeError as err:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2 et n")
-
-        elif self.choix_type.currentText() == "parabole non sym":
-            try:
-                try:
-                    self.h2 = float(self.input_h2.text())
-                    self.h3 = float(self.input_h3.text())
-                    self.pont.set_structure(self.L, self.n, self.h1, self.h2, self.h3)
-                    self._choix_graphique(self.choix_graphique.currentText())
-                except ValueError as err:
-                    self.compute_text.setText("Valeur de h2 ou h3 non valide")
-            except AttributeError as err:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, h3 et n")
-
-        for node in self.pont.nodes:
-            self.choix_noeud_force.addItem(f"{node[0]:.1f}, {node[1]:.1f}")
-            self.choix_noeud_support.addItem(f"{node[0]:.1f}, {node[1]:.1f}")
+            except AttributeError:
+                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, h3, n ainsi que les matériaux et les sections")
         
           
           
