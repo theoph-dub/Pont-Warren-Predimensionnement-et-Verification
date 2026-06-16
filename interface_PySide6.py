@@ -40,8 +40,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # ---- Paramètres de base
-        self.setWindowTitle("Pont Warren Calculateur")
-        self.resize(1300, 800)
+        self.setWindowTitle("Pont Warren Calculateur")  
 
         # ---- Valeurs par défaut
         self.supports = {}
