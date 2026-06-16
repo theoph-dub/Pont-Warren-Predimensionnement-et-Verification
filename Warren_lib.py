@@ -1,5 +1,8 @@
 """
-Librairie de calcul d'un pont Warren 2D grâce à une classe Warren()
+
+################ CETTE CLASSE SERT SURTOUT POUR L'UTILISATION DE L'APPLICATION #########################
+
+Librairie de calcul d'un pont Warren grâce à une classe Warren()
 Vous pouvez crééer un objet Warren() avec comme argument le type de pont souhaité puis suivre ces étapes :
 
 Utilisation:
@@ -7,7 +10,7 @@ Utilisation:
     2. Implémenter les matériaux : .set_materials
     3. Implémenter les sections : .set_section
     4. Implémenter les supports : .set_supports
-    5. Implémenter les forces : .set_forces
+    5. Implémenter les forces (pas obligatoire si vous voulez uniquement faire des vérifications): .set_forces
 
     Vous pouvez également changer les unités de bases avec .unites
     Les paramètres des normes pour les vérifications sont établies dans parameters.json
@@ -48,14 +51,14 @@ import matplotlib.patches as mpatches
 
 
 class ParametersImport():
-    def __init__(self, pathToFile):
+    def __init__(self, pathToFile=''):
         self.pathToFile = pathToFile
 
         self._parameters_init()
 
 
     def _parameters_init(self):
-        with open('parameters.json') as file:
+        with open(self.pathToFile) as file:
             self.parameters = json.load(file)
 
 
@@ -97,6 +100,8 @@ class Warren():
         self._init_params()
 
     def _init_params(self):
+        # Configure les paramètres définis dans le json
+
         file = ParametersImport('parameters.json')
         param = file.parameters
         self.denominateur_Q = param['denominateur_fleche_max_Q']

@@ -511,6 +511,8 @@ class MainWindow(QMainWindow):
             self.compute_text.setText("Valeur de la largeur non valide")
             
         try:
+            self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
+            self.pont.set_supports(self.supports)
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
                 maxFQ, is_good = self.pont.verification_fleche_Q(self.largeur)
             
@@ -546,6 +548,8 @@ class MainWindow(QMainWindow):
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
             
         try:
+            self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
+            self.pont.set_supports(self.supports)
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
                 maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poid_plancher)
             
@@ -581,6 +585,8 @@ class MainWindow(QMainWindow):
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
                 
         try:
+            self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
+            self.pont.set_supports(self.supports)
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
                 maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poid_plancher)
             
