@@ -537,7 +537,7 @@ class MainWindow(QMainWindow):
                 self.label_FQ.style().unpolish(self.label_FQ)
                 self.label_FQ.style().polish(self.label_FQ)
 
-        except AttributeError:
+        except (AttributeError, NotImplementedError):
             self.compute_text.setText("Vous devez implémenter la largeur du pont, la structure, les supports, les matériaux et les sections")
 
 
@@ -577,7 +577,7 @@ class MainWindow(QMainWindow):
                 self.label_ELS.style().unpolish(self.label_ELS)
                 self.label_ELS.style().polish(self.label_ELS)
 
-        except AttributeError:
+        except (AttributeError, NotImplementedError):
             self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
 
 
@@ -617,7 +617,7 @@ class MainWindow(QMainWindow):
                 self.label_CNELU.style().unpolish(self.label_CNELU)
                 self.label_CNELU.style().polish(self.label_CNELU)
 
-        except AttributeError:
+        except (AttributeError, NotImplementedError):
             self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
 
 

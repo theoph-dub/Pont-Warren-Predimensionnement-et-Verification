@@ -834,7 +834,7 @@ class Warren():
             plt.annotate(f"P{n}", (mid[0]+0.1, mid[1]+rd.uniform(0.05, 0.15)), color="b", size=6, ha="left") # annotation du numéro des poutres
 
         plt.grid(True)
-        plt.title("Pont en treillis warren rectangle 2D")
+        plt.title("Pont en treillis warren")
         
         if self.type=="parabole non sym":
             maxh = max(self.h1, self.h2, self.h3)
@@ -871,7 +871,7 @@ class Warren():
             ax.annotate(f"P{n}", (mid[0]+0.1, mid[1]+rd.uniform(0.05, 0.15)), color="b", size=6, ha="left") # annotation du numéro des poutres
 
         ax.grid(True)
-        ax.set_title("Pont en treillis warren rectangle 2D")
+        ax.set_title("Pont en treillis warren")
 
         ax.relim()
         ax.autoscale_view()
@@ -944,7 +944,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         plt.grid(True)
-        plt.title("Pont en treillis warren rectangle 2D")
+        plt.title("Pont en treillis warren")
 
         if self.type=="parabole non sym":
             maxh = max(self.h1, self.h2, self.h3)
@@ -1021,7 +1021,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
-        ax.set_title("Pont en treillis warren rectangle 2D")
+        ax.set_title("Pont en treillis warren")
 
         ax.relim()
         ax.autoscale_view()
@@ -1087,7 +1087,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         plt.grid(True)
-        plt.title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
+        plt.title("Efforts normaux des poutres d'un pont en treillis warren")
 
         if self.type=="parabole non sym":
             maxh = max(self.h1, self.h2, self.h3)
@@ -1157,7 +1157,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
-        ax.set_title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
+        ax.set_title("Efforts normaux des poutres d'un pont en treillis warren")
         
         ax.relim()
         ax.autoscale_view()
@@ -1240,7 +1240,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
             
         plt.grid(True)
-        plt.title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
+        plt.title("Déplacement des noeuds d'un pont en treillis warren")
 
         if self.type=="parabole non sym":
             maxh = max(self.h1, self.h2, self.h3)
@@ -1327,7 +1327,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
-        ax.set_title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
+        ax.set_title("Déplacement des noeuds d'un pont en treillis warren")
 
         ax.relim()
         ax.autoscale_view()
@@ -1719,7 +1719,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
             
         plt.grid(True)
-        plt.title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
+        plt.title("Déplacement des noeuds d'un pont en treillis warren")
 
         if self.type=="parabole non sym":
             maxh = max(self.h1, self.h2, self.h3)
@@ -1802,7 +1802,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
-        ax.set_title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
+        ax.set_title("Déplacement des noeuds d'un pont en treillis warren")
         
         ax.relim()
         ax.autoscale_view()
@@ -1965,7 +1965,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         plt.grid(True)
-        plt.title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
+        plt.title("Contraintes normales des poutres d'un pont en treillis warren")
 
         if self.type=="parabole non sym":
             maxh = max(self.h1, self.h2, self.h3)
@@ -2030,7 +2030,7 @@ class Warren():
                 raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
-        ax.set_title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
+        ax.set_title("Efforts normaux des poutres d'un pont en treillis warren")
         
         ax.relim()
         ax.autoscale_view()
