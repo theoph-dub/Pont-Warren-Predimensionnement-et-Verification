@@ -504,6 +504,9 @@ class MainWindow(QMainWindow):
 
 
     def _verification_fleche_FQ(self):
+
+        self._compute()
+
         try:
             self.largeur = float(self.input_largeur.text())
         except ValueError:
@@ -540,6 +543,9 @@ class MainWindow(QMainWindow):
 
 
     def _verification_fleche_ELS(self):
+
+        self._compute()
+
         try:
             self.largeur = float(self.input_largeur.text())
             self.poid_plancher = float(self.input_poid_plancher.text())
@@ -577,6 +583,9 @@ class MainWindow(QMainWindow):
 
 
     def _verification_CNELU(self):
+
+        self._compute()
+
         try:
             self.largeur = float(self.input_largeur.text())
             self.poid_plancher = float(self.input_poid_plancher.text())
@@ -912,7 +921,7 @@ class MainWindow(QMainWindow):
                 self._choix_graphique(self.choix_graphique.currentText())
 
             except AttributeError:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, n ainsi que les matériaux et les sections")
+                self.compute_text.setText("Valeurs de L, h1, n invalides ou matériaux/sections manquantes")
 
         elif self.choix_type.currentText() == "parabole sym":
             try:
@@ -926,7 +935,7 @@ class MainWindow(QMainWindow):
                 except ValueError:
                     self.compute_text.setText("Valeur de h2 non valide")
             except AttributeError:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, n ainsi que les matériaux et les sections")
+                self.compute_text.setText("Valeurs de L, h1, n invalides ou matériaux/sections manquantes")
 
         elif self.choix_type.currentText() == "parabole non sym":
             try:
@@ -941,7 +950,7 @@ class MainWindow(QMainWindow):
                 except ValueError:
                     self.compute_text.setText("Valeur de h2 ou h3 non valide")
             except AttributeError:
-                self.compute_text.setText("Vous devez rentrer des valeurs pour L, h1, h2, h3, n ainsi que les matériaux et les sections")
+                self.compute_text.setText("Valeurs de L, h1, n invalides ou matériaux/sections manquantes")
         
           
           
