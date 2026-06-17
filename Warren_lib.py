@@ -710,7 +710,7 @@ class Warren():
                 reduction.append(2*ni)
                 reduction.append(2*ni+1)
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
             
         reduction.sort(reverse=True) 
 
@@ -941,7 +941,7 @@ class Warren():
                 plt.gca().add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         plt.grid(True)
         plt.title("Pont en treillis warren rectangle 2D")
@@ -1018,7 +1018,7 @@ class Warren():
                 ax.add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
         ax.set_title("Pont en treillis warren rectangle 2D")
@@ -1084,7 +1084,7 @@ class Warren():
                 plt.gca().add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         plt.grid(True)
         plt.title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
@@ -1154,7 +1154,7 @@ class Warren():
                 ax.add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
         ax.set_title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
@@ -1237,7 +1237,7 @@ class Warren():
                 plt.gca().add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
             
         plt.grid(True)
         plt.title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
@@ -1324,7 +1324,7 @@ class Warren():
                 ax.add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
         ax.set_title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
@@ -1413,7 +1413,7 @@ class Warren():
 
     def _calcul_force_ELS(self, largeur, poid_plancher, charge_exploitation):
         self._calcul_force_exploitation(largeur, charge_exploitation)
-        self._calcul_force_permanantes(poid_plancher, largeur)
+        self._calcul_force_permanantes(largeur, poid_plancher)
 
         self.F_ELS = np.zeros((2*self.n_nodes_total, 1))
 
@@ -1424,7 +1424,7 @@ class Warren():
     def _calcul_force_ELU(self, largeur, poid_plancher, charge_exploitation):
 
         self._calcul_force_exploitation(largeur, charge_exploitation)
-        self._calcul_force_permanantes(poid_plancher, largeur)
+        self._calcul_force_permanantes(largeur, poid_plancher)
 
         self.F_ELU = np.zeros((2*self.n_nodes_total, 1))
 
@@ -1494,7 +1494,7 @@ class Warren():
                 reduction.append(2*ni)
                 reduction.append(2*ni+1)
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
             
         reduction.sort(reverse=True) 
 
@@ -1716,7 +1716,7 @@ class Warren():
                 plt.gca().add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
             
         plt.grid(True)
         plt.title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
@@ -1799,7 +1799,7 @@ class Warren():
                 ax.add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
         ax.set_title("Déplacement des noeuds d'un pont en treillis warren rectangle 2D")
@@ -1962,7 +1962,7 @@ class Warren():
                 plt.gca().add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         plt.grid(True)
         plt.title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
@@ -2027,7 +2027,7 @@ class Warren():
                 ax.add_patch(triangle)
 
             else: #Vérification
-                raise ValueError("Format de support non prix en charge")
+                raise ValueError("Format de support non pris en charge")
 
         ax.grid(True)
         ax.set_title("Efforts normaux des poutres d'un pont en treillis warren rectangle 2D")
