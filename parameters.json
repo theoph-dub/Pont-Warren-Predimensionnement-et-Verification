@@ -3,5 +3,11 @@
     "coef_G_ELU" : 1.35,
     "sigma_max_ELU" : 132,
     "denominateur_fleche_max_Q" : 300,
-    "denominateur_fleche_max_ELS" : 200
+    "denominateur_fleche_max_ELS" : 200,
+    
+    "classe_I_II_verti_longi_lim_basse" : 1,
+    "classe_I_II_verti_longi_lim_haute" : 5,
+
+    "classe_III_verti_longi_lim_basse" : 1.7,
+    "classe_III_verti_longi_lim_haute" : 2.1
 }

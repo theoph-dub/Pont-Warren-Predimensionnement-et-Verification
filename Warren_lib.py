@@ -38,6 +38,7 @@ Vous pouvez également afficher le pont :
 
 import json
 import numpy as np
+import scipy as scp
 import matplotlib.pyplot as plt
 import random as rd
 import matplotlib.patches as mpatches
@@ -109,6 +110,12 @@ class Warren():
         self.coef_G_ELU = param['coef_G_ELU']
         self.coef_Q_ELU = param['coef_Q_ELU']
         self.sigma_max_ELU = param['sigma_max_ELU']
+
+        self.classe_I_II_verti_longi_lim_basse = param['classe_I_II_verti_longi_lim_basse']
+        self.classe_I_II_verti_longi_lim_haute = param['classe_I_II_verti_longi_lim_haute']
+
+        self.classe_III_verti_longi_lim_basse = param['classe_III_verti_longi_lim_basse']
+        self.classe_III_verti_longi_lim_haute = param['classe_III_verti_longi_lim_haute']
 
 
     def unites(self, E="MPa", rho="kg/m^3", section="mm", force="N"):
@@ -727,12 +734,14 @@ class Warren():
             K_red = np.delete(K_red, i, 1) # suppression de la colonne
             F_red = np.delete(F_red, i, 0) # suppression du terme (ligne)
 
-        if np.linalg.det(K_red) == 0:
+        # vérification
+        rank = np.linalg.matrix_rank(K_red)
+        if rank < K_red.shape[0]:
             raise ValueError("La matrice K est une singularité, vérifiez les supports")
         
         u = np.linalg.solve(K_red, F_red)
 
-        # On fait maintenant l'inverse de la réduction 
+        # On fait maintenant l'inverse de la réduction pour retrouver la taille de base  
         reduction.sort(reverse=False) 
         for i in reduction:
             u = np.insert(u, i, 0)
@@ -853,7 +862,16 @@ class Warren():
 
     def ax_plot_pont_noeuds(self, ax):
         """
-        Affichage des poutres et des noeuds sur un axe définit (noeuds, poutres)
+        Affichage des poutres et des noeuds sur un axe définit sur un axe donné (noeuds, poutres)
+
+        Parameters
+        ------------
+        ax : class
+            axe matplotlib ou dessiner la figure
+
+        Returns
+        ------------
+        None
         """
 
         if len(self.nodes) == 0:
@@ -963,7 +981,16 @@ class Warren():
 
     def ax_plot_pont(self, ax):
         """
-        Affichage du pont de base sur un axe définit (noeuds, poutres, forces et supports)
+        Affichage du pont de base sur un axe définit sur un axe donné (noeuds, poutres, forces et supports)
+
+        Parameters
+        ------------
+        ax : class
+            axe matplotlib ou dessiner la figure
+
+        Returns
+        ------------
+        None
         """
 
         if len(self.nodes) == 0 or len(self.forces) == 0 or len(self.supports) == 0:
@@ -1106,7 +1133,16 @@ class Warren():
 
     def ax_plot_efforts(self, ax):
         """
-        Affichage des efforts normaux des poutres du pont (noeuds, poutres, efforts normaux)
+        Affichage des efforts normaux des poutres du pont sur un axe donné (noeuds, poutres, efforts normaux)
+
+        Parameters
+        ------------
+        ax : class
+            axe matplotlib ou dessiner la figure
+
+        Returns
+        ------------
+        None
         """
 
         if len(self.nodes) == 0 or len(self.forces) == 0 or len(self.supports) == 0:
@@ -1259,7 +1295,16 @@ class Warren():
 
     def ax_plot_deplacements(self, ax):
         """
-        Affichage des déplacements des noeuds du ponts (noeuds, poutres, déplacements)
+        Affichage des déplacements des noeuds du ponts sur un axe donné (noeuds, poutres, déplacements)
+
+        Parameters
+        ------------
+        ax : class
+            axe matplotlib ou dessiner la figure
+
+        Returns
+        ------------
+        None
         """
 
         if len(self.nodes) == 0 or len(self.forces) == 0 or len(self.supports) == 0:
@@ -1339,7 +1384,11 @@ class Warren():
 
 
 
-    def _calcul_force_permanantes(self, largeur, poid_plancher):
+    def _calcul_force_permanantes(self, largeur, poids_plancher):
+        
+        if len(self.nodes) == 0 or len(self.supports) == 0 or np.any(self.A_vector) == 0 or np.any(self.rho_vector) == 0:
+            raise NotImplementedError("Afin de calculer les forces permanantes, vous devez implémenter la structure, les supports et les matériaux/sections.")
+        
         self.F_G = np.zeros((2*self.n_nodes_total, 1))
 
         for node_combo in self.beams_nodes:
@@ -1374,12 +1423,12 @@ class Warren():
             self.F_G[y1] -= P/2
             self.F_G[y2] -= P/2 
 
-        F_p = self.length_horizontal_beams*(largeur/2)*poid_plancher*10**3 # Conversion en N/m^2
+        F_p = self.length_horizontal_beams*(largeur/2)*poids_plancher*10**3 # Conversion en N/m^2
 
         for n in range(len(self.nodes)):
             y=2*n+1
 
-            if n%2==0: # noeud sur la parti basse
+            if n%2==0: # noeud sur la partie basse
                 if n==0: # premier noeud du pont
                     self.F_G[y] -= F_p/2
                 elif n == self.n_nodes_total-1: # dernier noeud du pont
@@ -1392,7 +1441,7 @@ class Warren():
     def _calcul_force_exploitation(self, largeur, charge_exploitation):
 
         if len(self.nodes) == 0 or len(self.supports) == 0:
-            raise NotImplementedError("Afin de calculer les forces d'exploitations, vous devez implémenter la structure, les supports et les matériaux/sections.")
+            raise NotImplementedError("Afin de calculer les forces d'exploitations, vous devez implémenter la structure et les supports.")
             
         self.F_Q = np.zeros((2*self.n_nodes_total, 1))
 
@@ -1401,7 +1450,7 @@ class Warren():
         for n in range(len(self.nodes)):
             y=2*n+1
 
-            if n%2==0: # noeud sur la parti basse
+            if n%2==0: # noeud sur la partie basse
                 if n==0: # premier noeud du pont
                     self.F_Q[y] -= F/2
                 elif n == self.n_nodes_total-1: # dernier noeud du pont
@@ -1411,9 +1460,9 @@ class Warren():
 
 
 
-    def _calcul_force_ELS(self, largeur, poid_plancher, charge_exploitation):
+    def _calcul_force_ELS(self, largeur, poids_plancher, charge_exploitation):
         self._calcul_force_exploitation(largeur, charge_exploitation)
-        self._calcul_force_permanantes(largeur, poid_plancher)
+        self._calcul_force_permanantes(largeur, poids_plancher)
 
         self.F_ELS = np.zeros((2*self.n_nodes_total, 1))
 
@@ -1421,10 +1470,10 @@ class Warren():
 
 
 
-    def _calcul_force_ELU(self, largeur, poid_plancher, charge_exploitation):
+    def _calcul_force_ELU(self, largeur, poids_plancher, charge_exploitation):
 
         self._calcul_force_exploitation(largeur, charge_exploitation)
-        self._calcul_force_permanantes(largeur, poid_plancher)
+        self._calcul_force_permanantes(largeur, poids_plancher)
 
         self.F_ELU = np.zeros((2*self.n_nodes_total, 1))
 
@@ -1484,8 +1533,10 @@ class Warren():
 
     def _vecteurDeplacement_general(self, F):
         reduction=[]
+
         if len(self.supports) == 0:
             raise ValueError("Vous devez implémenter les supports pour effectuer les vérifications !")
+        
         for node in self.supports:
             ni=self.nodes_list.index([node[0], node[1]])
             if self.supports.get(node) == "Appui simple": # Si appui simple seulement Uy = 0
@@ -1508,12 +1559,14 @@ class Warren():
             K_red = np.delete(K_red, i, 1) # suppression de la colonne
             F_red = np.delete(F_red, i, 0) # suppression du terme (ligne)
 
-        if np.linalg.det(K_red) == 0:
+        # vérification
+        rank = np.linalg.matrix_rank(K_red)
+        if rank < K_red.shape[0]:
             raise ValueError("La matrice K est une singularité, vérifiez les supports")
         
         u = np.linalg.solve(K_red, F_red)
 
-        # On fait maintenant l'inverse de la réduction 
+        # On fait maintenant l'inverse de la réduction pour retrouver la taille de base  
         reduction.sort(reverse=False) 
         for i in reduction:
             u = np.insert(u, i, 0)
@@ -1522,9 +1575,9 @@ class Warren():
 
 
 
-    def _fleche_max_ELS(self, largeur, poid_plancher, charge_exploitation):
+    def _fleche_max_ELS(self, largeur, poids_plancher, charge_exploitation):
 
-            self._calcul_force_ELS(largeur, poid_plancher, charge_exploitation)
+            self._calcul_force_ELS(largeur, poids_plancher, charge_exploitation)
 
             self.u_ELS = self._vecteurDeplacement_general(self.F_ELS)
 
@@ -1569,7 +1622,7 @@ class Warren():
 
 
 
-    def verification_fleche_ELS(self, largeur, poid_plancher, charge_exploitation=5):
+    def verification_fleche_ELS(self, largeur, poids_plancher, charge_exploitation=5):
         """
         Calcule et vérifie si la flèche max sous charge d'exploitation est dans les normes
 
@@ -1577,7 +1630,7 @@ class Warren():
         ----------
         largeur : int or float
             largeur du pont en m
-        poid_plancher : int or float
+        poids_plancher : int or float
             poid du plancher du pont en kN/m^2
         charge_exploitation : int or float
             charge surfacique d'exploitation en kN/m^2
@@ -1590,7 +1643,7 @@ class Warren():
             renvoie si la valeur est dans les normes (True) ou hors normes (False)
         """
 
-        self._fleche_max_ELS(largeur, poid_plancher, charge_exploitation)
+        self._fleche_max_ELS(largeur, poids_plancher, charge_exploitation)
 
         is_respected = self.val_fleche_max_ELS <= (self.L/self.denominateur_ELS)
 
@@ -1598,9 +1651,9 @@ class Warren():
     
 
 
-    def _calcul_contrainte_normale_ELU(self, largeur, poid_plancher, charge_exploitation):
+    def _calcul_contrainte_normale_ELU(self, largeur, poids_plancher, charge_exploitation):
 
-        self._calcul_force_ELU(largeur, poid_plancher, charge_exploitation)
+        self._calcul_force_ELU(largeur, poids_plancher, charge_exploitation)
         self.N_ELU =    self._vecteurEfforts_general(self._vecteurDeplacement_general(self.F_ELU))
 
         self.sigma = np.zeros(len(self.N_ELU))
@@ -1621,7 +1674,7 @@ class Warren():
 
 
 
-    def verification_contrainte_normale_ELU(self, largeur, poid_plancher, charge_exploitation=5):
+    def verification_contrainte_normale_ELU(self, largeur, poids_plancher, charge_exploitation=5):
         """
         Calcule et vérifie si les contraintes normales sont dans les normes
 
@@ -1629,7 +1682,7 @@ class Warren():
         ----------
         largeur : int or float
             largeur du pont en m
-        poid_plancher : int or float
+        poids_plancher : int or float
             poid du plancher du pont en kN/m^2
         charge_exploitation : int or float
             charge surfacique d'exploitation en kN/m^2
@@ -1642,7 +1695,7 @@ class Warren():
             renvoie si la valeur est dans les normes (True) ou hors normes (False)
         """
 
-        self._calcul_contrainte_normale_ELU(largeur, poid_plancher, charge_exploitation)
+        self._calcul_contrainte_normale_ELU(largeur, poids_plancher, charge_exploitation)
 
         is_respected = self.sigma_max < self.sigma_max_ELU
 
@@ -1651,11 +1704,11 @@ class Warren():
 
 
         
-    def _plot_deplacements_general(self, u):
+    def _plot_deplacements_general(self, u, show_nodes=True, show_arrows=True):
 
         plt.figure()
 
-        if len(self.nodes) == 0 or len(self.supports) == 0:
+        if len(self.nodes) == 0 or len(self.supports) == 0 or np.any(self.A_vector) == 0 or np.any(self.rho_vector) == 0:
             raise NotImplementedError("Afin d'afficher les efforts, vous devez implémenter la structure, les supports et les matériaux/sections.")
         
         max_u = np.max(np.abs(u))
@@ -1664,20 +1717,22 @@ class Warren():
         nodes_after_scale = self.nodes+u.reshape(-1, 2)*scale
 
         # Plot des noeuds avant/après
-        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=25, c="r")
+        if show_nodes:
+            plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=25, c="r")
 
-        plt.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=25, c="r")
-        for n, node in enumerate(nodes_after_scale):
-            plt.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
+            plt.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=25, c="r")
+            for n, node in enumerate(nodes_after_scale):
+                plt.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
 
         # Plot des flèches de mesures du déplacement
-        for i in range(self.n_nodes_total):
-            node = self.nodes[i]
-            node_after = nodes_after[i]
-            node_after_scale = nodes_after_scale[i]
-            if np.linalg.norm(node_after-node) != 0:
-                plt.annotate("", xytext=node, xy=node_after_scale, arrowprops=dict(arrowstyle='->', color='black', linewidth=1.5, linestyle="--"), size=6)
-                plt.annotate(f"({(node_after[0]-node[0])*10**3:.2f}, {(node_after[1]-node[1])*10**3:.2f}) mm", (node_after_scale[0]-0.1, node_after_scale[1]+rd.uniform(0.05, 0.15)), size=5, ha="right")
+        if show_arrows:
+            for i in range(self.n_nodes_total):
+                node = self.nodes[i]
+                node_after = nodes_after[i]
+                node_after_scale = nodes_after_scale[i]
+                if np.linalg.norm(node_after-node) != 0:
+                    plt.annotate("", xytext=node, xy=node_after_scale, arrowprops=dict(arrowstyle='->', color='black', linewidth=1.5, linestyle="--"), size=6)
+                    plt.annotate(f"({(node_after[0]-node[0])*10**3:.2f}, {(node_after[1]-node[1])*10**3:.2f}) mm", (node_after_scale[0]-0.1, node_after_scale[1]+rd.uniform(0.05, 0.15)), size=5, ha="right")
 
         # Plot des poutres avant.après
         for n, beam in enumerate(self.beams):
@@ -1736,9 +1791,9 @@ class Warren():
 
 
 
-    def _ax_plot_deplacements_general(self, ax, u):
+    def _ax_plot_deplacements_general(self, ax, u, show_nodes=True, show_arrows=True):
 
-        if len(self.nodes) == 0 or len(self.supports) == 0:
+        if len(self.nodes) == 0 or len(self.supports) == 0 or np.any(self.A_vector) == 0 or np.any(self.rho_vector) == 0:
             raise NotImplementedError("Afin d'afficher les efforts, vous devez implémenter la structure, les supports et les matériaux/sections.")
 
         max_u = np.max(np.abs(u))
@@ -1747,20 +1802,22 @@ class Warren():
         nodes_after_scale = self.nodes+u.reshape(-1, 2)*scale
 
         # Plot des noeuds avant/après
-        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=25, c="r")
+        if show_nodes:
+            ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=25, c="r")
 
-        ax.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=25, c="r")
-        for n, node in enumerate(nodes_after_scale):
-            ax.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
+            ax.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=25, c="r")
+            for n, node in enumerate(nodes_after_scale):
+                ax.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
 
         # Plot des flèches de mesures du déplacement
-        for i in range(self.n_nodes_total):
-            node = self.nodes[i]
-            node_after = nodes_after[i]
-            node_after_scale = nodes_after_scale[i]
-            if np.linalg.norm(node_after-node) != 0:
-                ax.annotate("", xytext=node, xy=node_after_scale, arrowprops=dict(arrowstyle='->', color='black', linewidth=1.5, linestyle="--"), size=6)
-                ax.annotate(f"({(node_after[0]-node[0])*10**3:.2f}, {(node_after[1]-node[1])*10**3:.2f}) mm", (node_after_scale[0]-0.1, node_after_scale[1]+rd.uniform(0.05, 0.15)), size=5, ha="right")
+        if show_arrows:
+            for i in range(self.n_nodes_total):
+                node = self.nodes[i]
+                node_after = nodes_after[i]
+                node_after_scale = nodes_after_scale[i]
+                if np.linalg.norm(node_after-node) != 0:
+                    ax.annotate("", xytext=node, xy=node_after_scale, arrowprops=dict(arrowstyle='->', color='black', linewidth=1.5, linestyle="--"), size=6)
+                    ax.annotate(f"({(node_after[0]-node[0])*10**3:.2f}, {(node_after[1]-node[1])*10**3:.2f}) mm", (node_after_scale[0]-0.1, node_after_scale[1]+rd.uniform(0.05, 0.15)), size=5, ha="right")
 
         # Plot des poutres avant.après
         for n, beam in enumerate(self.beams):
@@ -1840,11 +1897,12 @@ class Warren():
 
     def ax_plot_deplacement_Q(self, ax, largeur, charge_exploitation=5):
         """
-        Affiche le déplacement du pont sous les charges d'exploitations
+        Affiche le déplacement du pont sous les charges d'exploitations sur un axe donné
 
         Parameters
         ----------
-        ax: 
+        ax : class
+            axe matplotlib ou dessiner la figure
         largeur : int or float
             largeur du pont en m
         charge_exploitation : int or float
@@ -1864,7 +1922,7 @@ class Warren():
 
 
 
-    def plot_deplacement_ELS(self, largeur, poid_plancher, charge_exploitation=5):
+    def plot_deplacement_ELS(self, largeur, poids_plancher, charge_exploitation=5):
         """
         Affiche le déplacement du pont sous les charges d'exploitations et permanantes
 
@@ -1872,7 +1930,7 @@ class Warren():
         ----------
         largeur : int or float
             largeur du pont en m
-        poid_plancher : int or float
+        poids_plancher : int or float
             poid du plancher du pont en kN/m^2
         charge_exploitation : int or float
             charge surfacique d'exploitation en kN/m^2
@@ -1885,21 +1943,22 @@ class Warren():
             renvoie si la valeur est dans les normes (True) ou hors normes (False)
         """
 
-        self._fleche_max_ELS(largeur, poid_plancher, charge_exploitation)
+        self._fleche_max_ELS(largeur, poids_plancher, charge_exploitation)
 
         self._plot_deplacements_general(self.u_ELS)
 
 
-    def ax_plot_deplacement_ELS(self, ax, largeur, poid_plancher, charge_exploitation=5):
+    def ax_plot_deplacement_ELS(self, ax, largeur, poids_plancher, charge_exploitation=5):
         """
-        Affiche le déplacement du pont sous les charges d'exploitations
+        Affiche le déplacement du pont sous les charges d'exploitations sur un axe donné
 
         Parameters
         ----------
-        ax: 
+        ax : class
+            axe matplotlib ou dessiner la figure
         largeur : int or float
             largeur du pont en m
-        poid_plancher : int or float
+        poids_plancher : int or float
             poid du plancher du pont en kN/m^2
         charge_exploitation : int or float
             charge surfacique d'exploitation en kN/m^2
@@ -1912,7 +1971,7 @@ class Warren():
             renvoie si la valeur est dans les normes (True) ou hors normes (False)
         """
 
-        self._fleche_max_ELS(largeur, poid_plancher, charge_exploitation)
+        self._fleche_max_ELS(largeur, poids_plancher, charge_exploitation)
 
         self._ax_plot_deplacements_general(ax, self.u_ELS)
 
@@ -1922,7 +1981,7 @@ class Warren():
 
         plt.figure()
 
-        if len(self.nodes) == 0 or len(self.supports) == 0:
+        if len(self.nodes) == 0 or len(self.supports) == 0 or np.any(self.A_vector) == 0 or np.any(self.rho_vector) == 0:
             raise NotImplementedError("Afin d'afficher les efforts, vous devez implémenter la structure, les supports et les matériaux/sections.")
 
         # Plot de l'effort normal des poutres avec colormap
@@ -1984,10 +2043,10 @@ class Warren():
 
     def _ax_plot_contraintes_general(self, ax, N):
         """
-        Affichage des efforts normaux des poutres du pont (noeuds, poutres, efforts normaux)
+        Affichage des efforts normaux des poutres du pont sur un axe donné (noeuds, poutres, efforts normaux)
         """
 
-        if len(self.nodes) == 0 or len(self.supports) == 0:
+        if len(self.nodes) == 0 or len(self.supports) == 0 or np.any(self.A_vector) == 0 or np.any(self.rho_vector) == 0:
             raise NotImplementedError("Afin d'afficher les efforts, vous devez implémenter la structure, les supports et les matériaux/sections.")
 
         # Plot de l'effort normal des poutres avec colormap
@@ -2042,7 +2101,7 @@ class Warren():
 
 
 
-    def plot_contrainte_normale_ELU(self, largeur, poid_plancher, charge_exploitation=5):
+    def plot_contrainte_normale_ELU(self, largeur, poids_plancher, charge_exploitation=5):
         """
         Affiche les contraintes normales de chaque poutre
 
@@ -2050,7 +2109,7 @@ class Warren():
         ----------
         largeur : int or float
             largeur du pont en m
-        poid_plancher : int or float
+        poids_plancher : int or float
             poid du plancher du pont en kN/m^2
         charge_exploitation : int or float
             charge surfacique d'exploitation en kN/m^2
@@ -2060,21 +2119,23 @@ class Warren():
         None
         """
 
-        self._calcul_contrainte_normale_ELU(largeur, poid_plancher, charge_exploitation)
+        self._calcul_contrainte_normale_ELU(largeur, poids_plancher, charge_exploitation)
 
         self._plot_contraintes_general(self.sigma)
 
 
 
-    def ax_plot_contrainte_normale_ELU(self, ax, largeur, poid_plancher, charge_exploitation=5):
+    def ax_plot_contrainte_normale_ELU(self, ax, largeur, poids_plancher, charge_exploitation=5):
         """
-        Affiche les contraintes normales de chaque poutre
+        Affiche les contraintes normales de chaque poutre sur un axe donné
 
         Parameters
         ----------
+        ax : class
+            axe matplotlib ou dessiner la figure
         largeur : int or float
             largeur du pont en m
-        poid_plancher : int or float
+        poids_plancher : int or float
             poid du plancher du pont en kN/m^2
         charge_exploitation : int or float
             charge surfacique d'exploitation en kN/m^2
@@ -2084,6 +2145,305 @@ class Warren():
         None
         """
 
-        self._calcul_contrainte_normale_ELU(largeur, poid_plancher, charge_exploitation)
+        self._calcul_contrainte_normale_ELU(largeur, poids_plancher, charge_exploitation)
 
         self._ax_plot_contraintes_general(ax, self.sigma)
+
+
+
+    def _matriceMasse(self, largeur, poids_plancher, masse_surfacique_pietons):
+
+        if len(self.nodes) == 0 or len(self.supports) == 0 or np.any(self.A_vector) == 0 or np.any(self.rho_vector) == 0:
+            raise NotImplementedError("Pour calculer la matrice de masse, vous devez implémenter la structure, les supports et les matériaux/sections.")
+        
+        self.M = np.zeros((2*self.n_nodes_total, 2*self.n_nodes_total))
+
+        for node_combo in self.beams_nodes:
+            n1i = node_combo[0] # numéro du premier noeud
+            n2i = node_combo[1] # numéro du second noeud
+
+            node1 = self.nodes[n1i] # coordonnées du premier noeud
+            node2 = self.nodes[n2i] # coordonnées du second noeud
+
+            Li=np.linalg.norm(node2-node1) # taille de la poutre
+
+            if n1i%2 == 0: # premier noeud en bas
+                if n2i%2 == 0: # second noeud en bas
+                    section = self.A_vector[0]
+                    masse_v = self.rho_vector[0]
+                else: # second noeud en haut
+                    section = self.A_vector[1]
+                    masse_v = self.rho_vector[1]
+            else: # premier noeud en haut
+                if n2i%2 == 0: # second noeud en bas
+                    section = self.A_vector[1]
+                    masse_v = self.rho_vector[1]
+                else: # second noeud en haut
+                    section = self.A_vector[2]
+                    masse_v = self.rho_vector[2]
+
+            x1 = 2*n1i
+            y1 = 2*n1i+1
+            x2 = 2*n2i
+            y2 = 2*n2i+1
+
+            m = masse_v*(section*10**(-6))*Li
+
+            self.M[x1][x1] += m/2
+            self.M[y1][y1] += m/2
+            self.M[x2][x2] += m/2
+            self.M[y2][y2] += m/2 
+
+        masse_surfacique_plancher = (poids_plancher*10**3)/9.81 # Conversion en kg/m^2
+
+        m_plancher = self.length_horizontal_beams*(largeur/2)*(masse_surfacique_plancher+masse_surfacique_pietons)
+
+        for n in range(len(self.nodes)):
+            x=2*n
+            y=2*n+1
+
+            if n%2==0: # noeud sur la partie basse
+                if n==0: # premier noeud du pont
+                    self.M[x][x] += m_plancher/2
+                    self.M[y][y] += m_plancher/2
+                elif n == self.n_nodes_total-1: # dernier noeud du pont
+                    self.M[x][x] += m_plancher/2
+                    self.M[y][y] += m_plancher/2
+                else: # noeud au milieu du pont
+                    self.M[x][x] += m_plancher
+                    self.M[y][y] += m_plancher
+
+
+    def matriceMasse(self, largeur, poids_plancher, masse_surfacique_pietons):
+        """
+        Calcule la matrice de masse de la structure selon les charges permanantes et la masse surfacique de pietons
+
+        Parameters
+        ----------
+        largeur : int or float
+            largeur du pont en m
+        poids_plancher : int or float
+            poid du plancher du pont en kN/m^2
+        masse_surfacique_pietons : int or float
+            masse surfacique des piétons en kg/m^2
+
+        Returns  
+        ----------
+        M : np.array
+            matrice de rigidité
+
+        """
+
+        self._matriceMasse(largeur, poids_plancher, masse_surfacique_pietons)   
+
+        return self.M
+    
+
+    def _freqs_propre(self, largeur, poids_plancher, masse_surfacique_pietons):
+
+        self._matriceMasse(largeur, poids_plancher, masse_surfacique_pietons)
+
+        reduction=[]
+
+        for node in self.supports:
+            ni=self.nodes_list.index([node[0], node[1]])
+            if self.supports.get(node) == "Appui simple": # Si appui simple seulement Uy = 0
+                reduction.append(2*ni+1)
+            elif self.supports.get(node) == "Articulation": # Si Articulation alors Ux = Uy = 0
+                reduction.append(2*ni)
+                reduction.append(2*ni+1)
+            else: #Vérification
+                raise ValueError("Format de support non pris en charge")
+        
+        reduction.sort(reverse=True) 
+
+        self._matriceRigidite()
+        
+        K_red = np.copy(self.K)
+        M_red = np.copy(self.M)
+
+        for i in reduction:
+            K_red = np.delete(K_red, i, 0) # suppression de la ligne
+            K_red = np.delete(K_red, i, 1) # suppression de la colonne
+            M_red = np.delete(M_red, i, 0) # suppression de la ligne
+            M_red = np.delete(M_red, i, 1) # suppression de la colonne
+
+        # vérification
+        rank = np.linalg.matrix_rank(K_red)
+        if rank < K_red.shape[0]:
+            raise ValueError("La matrice K est une singularité, vérifiez les supports")
+        
+        self.eigvals, self.eigvecs = scp.linalg.eigh(K_red, M_red)
+
+        self.freqs = np.sqrt(self.eigvals) / (2*np.pi)
+
+
+
+    def freqs_propre(self, largeur, poids_plancher, masse_surfacique):
+        """
+        Calcule toutes les fréquences propres et les trie dans l'ordre croissant
+
+        Parameters
+        ----------
+        largeur : int or float
+            largeur du pont en m
+        poids_plancher : int or float
+            poid du plancher du pont en kN/m^2
+        masse_surfacique_pietons : int or float
+            masse surfacique des piétons en kg/m^2
+
+        Returns  
+        ----------
+        freqs : np.array
+            vecteur contenant toutes les fréquences propres dans l'ordre croissant
+
+        """
+
+        self._freqs_propre(largeur, poids_plancher, masse_surfacique)
+
+        return self.freqs
+
+
+
+    def plot_mode_n(self, n, largeur, poids_plancher, masse_surfacique_pietons):
+        """
+        Affiche la déformation lié à la fréquence propre numéro n (ordre croissant)
+
+        Parameters
+        ----------
+        n : int
+            numéro du mode a afficher (démarre à 1)
+        largeur : int or float
+            largeur du pont en m
+        poids_plancher : int or float
+            poid du plancher du pont en kN/m^2
+        masse_surfacique_pietons : int or float
+            masse surfacique des piétons en kg/m^2
+
+        Returns  
+        ----------
+        None
+
+        """
+        self._freqs_propre(largeur, poids_plancher, masse_surfacique_pietons)
+
+        if n<=0:
+            raise ValueError("Le numéro du mode a afficher doit être strictement positif")
+        n-=1
+        mode = self.eigvecs[:, n]
+
+        reduction=[]
+
+        for node in self.supports:
+            ni=self.nodes_list.index([node[0], node[1]])
+            if self.supports.get(node) == "Appui simple": # Si appui simple seulement Uy = 0
+                reduction.append(2*ni+1)
+            elif self.supports.get(node) == "Articulation": # Si Articulation alors Ux = Uy = 0
+                reduction.append(2*ni)
+                reduction.append(2*ni+1)
+            else: #Vérification
+                raise ValueError("Format de support non pris en charge")
+            
+        # On fait maintenant l'inverse de la réduction pour retrouver la taille de base 
+        reduction.sort(reverse=False) 
+        for i in reduction:
+            mode = np.insert(mode, i, 0)
+
+        self._plot_deplacements_general(mode, False, False)
+
+
+
+    def ax_plot_mode_n(self, ax, n, largeur, poids_plancher, masse_surfacique_pietons): 
+        """
+        Affiche la déformation lié à la fréquence propre numéro n sur un axe donné (ordre croissant)
+
+        Parameters
+        ----------
+        n : int
+            numéro du mode a afficher (démarre à 1)
+        largeur : int or float
+            largeur du pont en m
+        poids_plancher : int or float
+            poid du plancher du pont en kN/m^2
+        masse_surfacique_pietons : int or float
+            masse surfacique des piétons en kg/m^2
+
+        Returns  
+        ----------
+        None
+
+        """
+        self._freqs_propre(largeur, poids_plancher, masse_surfacique_pietons)
+
+        if n<=0:
+            raise ValueError("Le numéro du mode a afficher doit être strictement positif")
+        n-=1
+        mode = self.eigvecs[:, n]
+
+        reduction=[]
+
+        for node in self.supports:
+            ni=self.nodes_list.index([node[0], node[1]])
+            if self.supports.get(node) == "Appui simple": # Si appui simple seulement Uy = 0
+                reduction.append(2*ni+1)
+            elif self.supports.get(node) == "Articulation": # Si Articulation alors Ux = Uy = 0
+                reduction.append(2*ni)
+                reduction.append(2*ni+1)
+            else: #Vérification
+                raise ValueError("Format de support non pris en charge")
+            
+        # On fait maintenant l'inverse de la réduction pour retrouver la taille de base 
+        reduction.sort(reverse=False) 
+        for i in reduction:
+            mode = np.insert(mode, i, 0)
+
+        self._ax_plot_deplacements_general(ax, mode, False, False)
+
+    
+
+    def analyse_modale(self, classe, largeur, poids_plancher, masse_surfacique_pietons):
+        """
+        Affiche la déformation lié à la fréquence propre numéro n (ordre croissant)
+
+        Parameters
+        ----------
+        classe : int
+            Classe du pont (1, 2 ou 3)
+        largeur : int or float
+            largeur du pont en m
+        poids_plancher : int or float
+            poid du plancher du pont en kN/m^2
+        masse_surfacique_pietons : int or float
+            masse surfacique des piétons en kg/m^2
+
+        Returns  
+        ----------
+        result : list
+            liste de string avec les informations sur les fréquences dangereuses et le numéro du node pour affichage
+
+        """
+
+        if classe not in [1, 2, 3]:
+            raise ValueError("Classe invalide (doit être 1, 2 ou 3)")
+    
+        self._freqs_propre(largeur, poids_plancher, masse_surfacique_pietons)
+
+        result = []
+
+        if classe==1 or classe==2:
+            lim_freq_haute = self.classe_I_II_verti_longi_lim_haute
+            lim_freq_basse = self.classe_I_II_verti_longi_lim_basse
+            
+        elif classe==3:
+            lim_freq_haute = self.classe_III_verti_longi_lim_haute
+            lim_freq_basse = self.classe_III_verti_longi_lim_basse
+        
+        for n, val in enumerate(self.freqs):
+            if  lim_freq_basse <= val <= lim_freq_haute:
+                result.append(f"mode n°{n+1} : {lim_freq_basse} Hz <= {val:.2f} Hz <= {lim_freq_haute} Hz DANGER")
+        
+        
+        if len(result)==0:
+            result.append("Tous les modes OK")
+
+        return result

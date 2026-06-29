@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QFrame
 )
 
+# classe pour PySide6 trouvé en ligne (https://www.pythonguis.com/tutorials/pyqt6-plotting-matplotlib/)
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
@@ -35,6 +36,7 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes = self.fig.add_subplot(111)
 
 
+# Interface avec PySide6
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -70,6 +72,7 @@ class MainWindow(QMainWindow):
         self.sidebar = QVBoxLayout()
         self.sidebar.setSpacing(20)
         self.sidebar.setContentsMargins(0, 20, 0, 20)
+
         # Comportement de la sidebar
         self.sidebar_widget = QWidget()
         self.sidebar_widget.setLayout(self.sidebar)
@@ -80,6 +83,7 @@ class MainWindow(QMainWindow):
         self.button_variables = QPushButton("Variables")
         self.button_plots = QPushButton("Graphiques")
         self.button_verification = QPushButton("Vérifications")
+        self.button_analyse_modale = QPushButton("Analyse Modale")
         self.button_unites = QPushButton("Unités")
 
         self.choix_graphique = QComboBox()
@@ -101,6 +105,7 @@ class MainWindow(QMainWindow):
         self.sidebar.addWidget(self.button_plots)
         self.sidebar.addWidget(self.choix_graphique)
         self.sidebar.addWidget(self.button_verification)
+        self.sidebar.addWidget(self.button_analyse_modale)
         self.sidebar.addWidget(self.button_unites)
 
         self.sidebar_compute_widget = QWidget()
@@ -115,6 +120,7 @@ class MainWindow(QMainWindow):
         self.sidebar_compute.addWidget(self.button_clear)
 
         self.sidebar.addWidget(self.sidebar_compute_widget)
+        
         # Ajout au main_widget
         self.main_layout.addWidget(self.sidebar_widget)
 
@@ -129,6 +135,7 @@ class MainWindow(QMainWindow):
         self.button_plots.setObjectName("sidebar")
         self.button_verification.setObjectName("sidebar")
         self.button_unites.setObjectName("sidebar")
+        self.button_analyse_modale.setObjectName("sidebar")
 
         # Ajout de la fonction du menu déroulant
         self.choix_graphique.currentTextChanged.connect(self._choix_graphique)
@@ -154,6 +161,7 @@ class MainWindow(QMainWindow):
         self.label_FQ.setText("En attente de vérification")
         self.label_ELS.setText("En attente de vérification")
         self.label_CNELU.setText("En attente de vérification")
+        self.result_analyse_modale.setText("En attente de calcul")
 
         # on remet les couleurs de base pour les vérifications
         self.label_FQ.setProperty("active", "standBy")
@@ -168,12 +176,11 @@ class MainWindow(QMainWindow):
         self.label_CNELU.style().unpolish(self.label_CNELU)
         self.label_CNELU.style().polish(self.label_CNELU)
 
-    def _choix_graphique(self, text):
+        self.result_analyse_modale.setProperty("active", "standBy")
+        self.result_analyse_modale.style().unpolish(self.result_analyse_modale)
+        self.result_analyse_modale.style().polish(self.result_analyse_modale)
 
-        # Suppression des colorbars existantes
-        for ax in self.plot.figure.axes:
-            if ax != self.plot.axes:
-                ax.remove()
+    def _choix_graphique(self, text):
 
         try:
             if text == "Pont - Base":
@@ -203,11 +210,11 @@ class MainWindow(QMainWindow):
             if text == "Vérif - Déplacements ELS":
                 try:
                     self.largeur = float(self.input_largeur.text())
-                    self.poid_plancher = float(self.input_poid_plancher.text())
+                    self.poids_plancher = float(self.input_poids_plancher.text())
                 except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
                 self.plot._fig_cla()
-                self.pont.ax_plot_deplacement_ELS(self.plot.axes, self.largeur, self.poid_plancher)
+                self.pont.ax_plot_deplacement_ELS(self.plot.axes, self.largeur, self.poids_plancher)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des déplacements ELS calculé")
@@ -218,11 +225,11 @@ class MainWindow(QMainWindow):
             if text == "Vérif - Contraintes N ELU":
                 try:
                     self.largeur = float(self.input_largeur.text())
-                    self.poid_plancher = float(self.input_poid_plancher.text())
+                    self.poids_plancher = float(self.input_poids_plancher.text())
                 except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
                 self.plot._fig_cla()
-                self.pont.ax_plot_contrainte_normale_ELU(self.plot.axes, self.largeur, self.poid_plancher)
+                self.pont.ax_plot_contrainte_normale_ELU(self.plot.axes, self.largeur, self.poids_plancher)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des contraintes normales ELU calculé")
@@ -240,7 +247,10 @@ class MainWindow(QMainWindow):
         # Page 3
         self._init_content_verification()
 
-        # Page 4
+        # page 4
+        self._init_content_analyse_modale()
+
+        # Page 5
         self._init_content_unites()
 
         # Liens des tabs dans la sidebar
@@ -267,17 +277,23 @@ class MainWindow(QMainWindow):
         self.page_unites.setObjectName("page_unites")
         self.page_unites.setLayout(self.content_unites)
 
+        self.page_analyse_modale = QWidget()
+        self.page_analyse_modale.setObjectName("page_analyse_modale")
+        self.page_analyse_modale.setLayout(self.content_analyse_modale)
+
         # Création du tableau des pages pour les tabs
         self.tabs.addWidget(self.page_variable)
         self.tabs.addWidget(self.page_plots)
         self.tabs.addWidget(self.page_verification)
         self.tabs.addWidget(self.page_unites)
+        self.tabs.addWidget(self.page_analyse_modale)
 
         # Assignation pages-boutons
         self.button_variables.clicked.connect(lambda: (self.tabs.setCurrentIndex(0), self._bouton_actif(self.button_variables)))
         self.button_plots.clicked.connect(lambda: (self.tabs.setCurrentIndex(1), self._bouton_actif(self.button_plots)))
         self.button_verification.clicked.connect(lambda: (self.tabs.setCurrentIndex(2), self._bouton_actif(self.button_verification)))
         self.button_unites.clicked.connect(lambda: (self.tabs.setCurrentIndex(3), self._bouton_actif(self.button_unites)))
+        self.button_analyse_modale.clicked.connect(lambda: (self.tabs.setCurrentIndex(4), self._bouton_actif(self.button_analyse_modale)))
         self._bouton_actif(self.button_variables)
 
         # Ajout au main_widget
@@ -286,7 +302,7 @@ class MainWindow(QMainWindow):
 
 
     def _bouton_actif(self, bouton_actif):
-        for bouton in [self.button_variables, self.button_plots, self.button_verification, self.button_unites]:
+        for bouton in [self.button_variables, self.button_plots, self.button_verification, self.button_unites, self.button_analyse_modale]:
             bouton.setProperty("active", bouton == bouton_actif)
             bouton.style().unpolish(bouton)
             bouton.style().polish(bouton)
@@ -353,10 +369,10 @@ class MainWindow(QMainWindow):
 
         row00 = QHBoxLayout()
         row00.addWidget(QLabel("Poid du plancher du pont = "))
-        self.input_poid_plancher = QLineEdit()
-        self.input_poid_plancher.setPlaceholderText("Poid du plancher du pont en kN/m^2")
-        row00.addWidget(self.input_poid_plancher)
-        self.input_poid_plancher.setMaximumWidth(300)
+        self.input_poids_plancher = QLineEdit()
+        self.input_poids_plancher.setPlaceholderText("Poid du plancher du pont en kN/m^2")
+        row00.addWidget(self.input_poids_plancher)
+        self.input_poids_plancher.setMaximumWidth(300)
         row00.addStretch()
 
         row1 = QHBoxLayout()
@@ -439,6 +455,134 @@ class MainWindow(QMainWindow):
         self.content_verification.setContentsMargins(28, 10, 28, 10)
 
 
+    def _init_content_analyse_modale(self):
+
+        self.content_analyse_modale = QVBoxLayout()
+
+        line0 = QFrame()
+        line0.setFrameShape(QFrame.Shape.HLine)
+        line0.setObjectName("Section")
+
+        row1 = QHBoxLayout()
+        row1.addWidget(QLabel("Classe du pont : "))
+        self.choix_classe = QComboBox()
+        self.choix_classe.addItem("III")
+        self.choix_classe.addItem("II")
+        self.choix_classe.addItem("I")
+        row1.addWidget(self.choix_classe)
+        row1.addWidget(QLabel("Masse surfacique piétons :"))
+        self.input_masse_surfacique_pietons = QLineEdit()
+        self.input_masse_surfacique_pietons.setPlaceholderText("en kg/m^2")
+        self.input_masse_surfacique_pietons.setMaximumWidth(150)
+        row1.addWidget(self.input_masse_surfacique_pietons)
+        row1.addStretch()
+
+        row2 = QHBoxLayout()
+        row2.addWidget(QLabel("Mode n°"))
+        self.choix_mode = QComboBox()
+        self.choix_mode.currentTextChanged.connect(self._plot_mode)
+        row2.addWidget(self.choix_mode)
+        self.label_freq_mode = QLabel()
+        row2.addWidget(self.label_freq_mode)
+        self.label_freq_mode.setText("En attente de calcul")
+        row2.addStretch()
+
+        row_entries = QVBoxLayout()
+        row_entries.addLayout(row1)
+        row_entries.addLayout(row2)
+        
+        self.result_analyse_modale = QPushButton()
+        self.result_analyse_modale.setText("En attente de calcul")
+        self.result_analyse_modale.setMaximumHeight(100)
+        self.result_analyse_modale.setMinimumWidth(400)
+        self.result_analyse_modale.clicked.connect(self._compute_analyse_modale)
+        self.result_analyse_modale.setObjectName("analyse")
+
+        tab = QHBoxLayout()
+        tab.addLayout(row_entries)
+        tab.addWidget(self.result_analyse_modale)
+
+        line1 = QFrame()
+        line1.setFrameShape(QFrame.Shape.HLine)
+        line1.setObjectName("Section")
+
+        self.plot_analyse_modale = MplCanvas(self, width=5, height=4, dpi=100)
+        self.toolbar_analyse_modale = NavigationToolbar2QT(self.plot_analyse_modale, self)
+
+        self.content_analyse_modale.addWidget(line0)
+        self.content_analyse_modale.addLayout(tab)
+        self.content_analyse_modale.addWidget(line1)
+        self.content_analyse_modale.addWidget(self.toolbar_analyse_modale)
+        self.content_analyse_modale.addWidget(self.plot_analyse_modale)
+
+        self.content_analyse_modale.setSpacing(10)
+        self.content_analyse_modale.setContentsMargins(28, 10, 28, 10)
+
+
+    def _compute_analyse_modale(self):
+        
+        self._compute()
+
+        try:
+            self.largeur = float(self.input_largeur.text())
+            self.poids_plancher = float(self.input_poids_plancher.text())
+            self.masse_surfacique_pietons = float(self.input_masse_surfacique_pietons.text())
+        except ValueError:
+            self.compute_text.setText("Valeur de la largeur, du poid plancher ou de la masse surfacique piétons non valide")
+            
+        try:
+            self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
+            self.pont.set_supports(self.supports)
+
+            if self.choix_classe.currentText() == "I":
+                self.classe_pont = 1
+            elif self.choix_classe.currentText() == "II":
+                self.classe_pont = 2
+            elif self.choix_classe.currentText() == "III":
+                self.classe_pont = 3
+
+            result = self.pont.analyse_modale(self.classe_pont, self.largeur, self.poids_plancher, self.masse_surfacique_pietons)
+
+            for i in range(len(self.pont.freqs)):
+                self.choix_mode.addItem(f"{i+1}")
+
+            if len(result) == 1:
+                self.result_analyse_modale.setText(result[0])
+
+                if result[0] == "Tous les modes OK":
+                    self.result_analyse_modale.setProperty("active", "true")
+                    self.result_analyse_modale.style().unpolish(self.result_analyse_modale)
+                    self.result_analyse_modale.style().polish(self.result_analyse_modale)
+                else:
+                    self.result_analyse_modale.setProperty("active", "false")
+                    self.result_analyse_modale.style().unpolish(self.result_analyse_modale)
+                    self.result_analyse_modale.style().polish(self.result_analyse_modale)
+
+            else:
+                text_result = ""
+                for i in result:
+                    text_result += i+"\n"
+                self.result_analyse_modale.setText(text_result)
+
+                self.result_analyse_modale.setProperty("active", "false")
+                self.result_analyse_modale.style().unpolish(self.result_analyse_modale)
+                self.result_analyse_modale.style().polish(self.result_analyse_modale)
+            
+            self._plot_mode()
+
+        except (AttributeError, NotImplementedError):
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les supports, les matériaux et les sections")
+
+    def _plot_mode(self):
+        
+        self.mode_actuel = int(self.choix_mode.currentText())
+
+        self.freq_actuel = self.pont.freqs[self.mode_actuel-1]
+        self.label_freq_mode.setText(f"fréquence du mode choisi : {self.freq_actuel:.2f}")
+
+        self.plot_analyse_modale._fig_cla()
+        self.pont.ax_plot_mode_n(self.plot_analyse_modale.axes, self.mode_actuel, self.largeur, self.poids_plancher, self.masse_surfacique_pietons)
+        self.plot_analyse_modale.draw()
 
     def _init_content_unites(self):
         self.content_unites = QVBoxLayout()
@@ -548,7 +692,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.largeur = float(self.input_largeur.text())
-            self.poid_plancher = float(self.input_poid_plancher.text())
+            self.poids_plancher = float(self.input_poids_plancher.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
             
@@ -556,11 +700,11 @@ class MainWindow(QMainWindow):
             self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
             self.pont.set_supports(self.supports)
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poid_plancher)
+                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poids_plancher)
             
             elif self.choix_charge.currentText() == "Selon la longueur":
                 charge_exploitation = (2 + 120/(self.L+30))
-                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poid_plancher, charge_exploitation)
+                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poids_plancher, charge_exploitation)
 
             maxi = self.pont.L/self.pont.denominateur_ELS
 
@@ -588,7 +732,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.largeur = float(self.input_largeur.text())
-            self.poid_plancher = float(self.input_poid_plancher.text())
+            self.poids_plancher = float(self.input_poids_plancher.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
                 
@@ -596,11 +740,11 @@ class MainWindow(QMainWindow):
             self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
             self.pont.set_supports(self.supports)
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poid_plancher)
+                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poids_plancher)
             
             elif self.choix_charge.currentText() == "Selon la longueur":
                 charge_exploitation = (2 + 120/(self.L+30))*10**3
-                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poid_plancher, charge_exploitation)
+                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poids_plancher, charge_exploitation)
 
             maxi = self.pont.sigma_max_ELU
             
@@ -798,20 +942,20 @@ class MainWindow(QMainWindow):
         self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
         row17.addWidget(self.input_d) 
 
-        # Entrée texte e
-        row18 = QHBoxLayout()
-        row18.addWidget(QLabel("e ="))
-        self.input_e = QLineEdit()
-        self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
-        row18.addWidget(self.input_e) 
-
         # Entrée texte h
-        row19 = QHBoxLayout()
-        row19.addWidget(QLabel("h ="))
+        row18 = QHBoxLayout()
+        row18.addWidget(QLabel("h ="))
         self.input_h = QLineEdit()
         self.input_h.setPlaceholderText("Vous êtes en type de section tube")
-        row19.addWidget(self.input_h) 
+        row18.addWidget(self.input_h) 
         self.input_h.setDisabled(True)
+
+        # Entrée texte e
+        row19 = QHBoxLayout()
+        row19.addWidget(QLabel("e ="))
+        self.input_e = QLineEdit()
+        self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
+        row19.addWidget(self.input_e) 
 
         # Entrée texte E
         row20 = QHBoxLayout()
@@ -1060,6 +1204,16 @@ if __name__ == "__main__":
                     QPushButton#sidebar[active="true"] {
                       background: #1e1e2e;
                       border-left: 6px solid #89b4fa;
+                      }
+
+                    QPushButton#analyse[active="true"] {
+                      border: 2px solid #A8D5BA;
+                      }
+                    QPushButton#analyse[active="false"] {
+                      border: 2px solid #F4A6A6;
+                      }
+                    QPushButton#analyse[active="standBy"] {
+                      border: 2px solid #89b4fa;
                       }
 
                     QPushButton#compute {
