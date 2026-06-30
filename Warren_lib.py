@@ -2239,7 +2239,7 @@ class Warren():
         return self.M
     
 
-    def _freqs_propre(self, largeur, poids_plancher, masse_surfacique_pietons):
+    def _freqs_propre(self, largeur, poids_plancher, masse_surfacique_pietons, n=10):
 
         self._matriceMasse(largeur, poids_plancher, masse_surfacique_pietons)
 
@@ -2277,9 +2277,12 @@ class Warren():
 
         self.freqs = np.sqrt(self.eigvals) / (2*np.pi)
 
+        self.freq_n_max = n
+        self.freqs = self.freqs[:n]
 
 
-    def freqs_propre(self, largeur, poids_plancher, masse_surfacique):
+
+    def freqs_propre(self, largeur, poids_plancher, masse_surfacique, n=10):
         """
         Calcule toutes les fréquences propres et les trie dans l'ordre croissant
 
@@ -2291,6 +2294,8 @@ class Warren():
             poid du plancher du pont en kN/m^2
         masse_surfacique_pietons : int or float
             masse surfacique des piétons en kg/m^2
+        n : int
+            nombre de fréquences à garder
 
         Returns  
         ----------
@@ -2299,7 +2304,7 @@ class Warren():
 
         """
 
-        self._freqs_propre(largeur, poids_plancher, masse_surfacique)
+        self._freqs_propre(largeur, poids_plancher, masse_surfacique, n)
 
         return self.freqs
 
@@ -2325,6 +2330,10 @@ class Warren():
         None
 
         """
+
+        if n>self.freq_n_max:
+            raise IndexError("Vous avez calculé trop peu de fréquences, le numéro du mode dépasse celui des fréquences gardés !")
+
         self._freqs_propre(largeur, poids_plancher, masse_surfacique_pietons)
 
         if n<=0:
@@ -2401,7 +2410,7 @@ class Warren():
 
     
 
-    def analyse_modale(self, classe, largeur, poids_plancher, masse_surfacique_pietons):
+    def analyse_modale(self, classe, largeur, poids_plancher, masse_surfacique_pietons, n):
         """
         Affiche la déformation lié à la fréquence propre numéro n (ordre croissant)
 
@@ -2415,6 +2424,8 @@ class Warren():
             poid du plancher du pont en kN/m^2
         masse_surfacique_pietons : int or float
             masse surfacique des piétons en kg/m^2
+        n : int
+            nombre de fréquences à garder
 
         Returns  
         ----------
@@ -2426,7 +2437,7 @@ class Warren():
         if classe not in [1, 2, 3]:
             raise ValueError("Classe invalide (doit être 1, 2 ou 3)")
     
-        self._freqs_propre(largeur, poids_plancher, masse_surfacique_pietons)
+        self._freqs_propre(largeur, poids_plancher, masse_surfacique_pietons, n)
 
         result = []
 
@@ -2447,3 +2458,40 @@ class Warren():
             result.append("Tous les modes OK")
 
         return result
+    
+
+
+    def masse_pont_totale(self, largeur, poids_plancher, masse_surfacique_pietons):
+        """
+        Calcule la masse totale du pont en X et en Y
+
+        Parameters
+        ----------
+        largeur : int or float
+            largeur du pont en m
+        poids_plancher : int or float
+            poid du plancher du pont en kN/m^2
+        masse_surfacique_pietons : int or float
+            masse surfacique des piétons en kg/m^2
+
+        Returns  
+        ----------
+        masse_x : int or float
+            masse totale du pont en x
+        masse_y : int or float
+            masse totale du pont en y
+
+        """
+        
+        self.masse_x = 0
+        self.masse_y = 0
+
+        self._matriceMasse(largeur, poids_plancher, masse_surfacique_pietons)
+
+        for n, masse in enumerate(np.diag(self.M)):
+            if n%2==0:
+                self.masse_x += masse
+            else:
+                self.masse_y += masse
+        
+        return self.masse_x, self.masse_y

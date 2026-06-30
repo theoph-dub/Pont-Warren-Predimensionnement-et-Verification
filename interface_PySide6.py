@@ -157,11 +157,14 @@ class MainWindow(QMainWindow):
         self.up_text = ""
         self.mid_text = ""
         self.bot_text = ""
-        self.materiau_section_actuel.setText("Poutres supérieures : "+"\n"+"Poutres diagonales : "+"\n"+"Poutres inférieures : ")
+        self.materiau_section_actuel.setText("Poutres supérieures : En attente de calcul"+"\n"+"Poutres diagonales : En attente de calcul"+"\n"+"Poutres inférieures : En attente de calcul")
         self.label_FQ.setText("En attente de vérification")
         self.label_ELS.setText("En attente de vérification")
         self.label_CNELU.setText("En attente de vérification")
-        self.result_analyse_modale.setText("En attente de calcul")
+        self.result_analyse_modale.setText("Effectuer l'analyse modale")
+        self.masse_pont_x.setText(f"Masse du pont en x : En attente de calcul (Analyse modale)")
+        self.masse_pont_y.setText(f"Masse du pont en y : En attente de calcul (Analyse modale)")
+        self.label_freq_mode.setText("fréquence du mode choisi : En attente de calcul")
 
         # on remet les couleurs de base pour les vérifications
         self.label_FQ.setProperty("active", "standBy")
@@ -359,6 +362,10 @@ class MainWindow(QMainWindow):
         line0.setFrameShape(QFrame.Shape.HLine)
         line0.setObjectName("Section")
 
+        absoluterow0 = QHBoxLayout()
+        bigrow0 = QVBoxLayout()
+        bigrow1 = QVBoxLayout()
+
         row0 = QHBoxLayout()
         row0.addWidget(QLabel("Largeur du pont = "))
         self.input_largeur = QLineEdit()
@@ -382,6 +389,21 @@ class MainWindow(QMainWindow):
         self.choix_charge.addItem("Standard (~5 kN/m^2)")
         self.choix_charge.addItem("Selon la longueur")
         row1.addStretch()
+
+        bigrow0.addLayout(row0)
+        bigrow0.addLayout(row00)
+        bigrow0.addLayout(row1)
+
+        row11 = QVBoxLayout()
+        self.masse_pont_x = QLabel("Masse du pont en y : En attente de calcul (Analyse modale)")
+        self.masse_pont_y = QLabel("Masse du pont en y : En attente de calcul (Analyse modale)")
+        row11.addWidget(self.masse_pont_x)
+        row11.addWidget(self.masse_pont_y)
+
+        bigrow1.addLayout(row11)
+
+        absoluterow0.addLayout(bigrow0)
+        absoluterow0.addLayout(bigrow1)
 
         row2 = QHBoxLayout()
         self.titre_FQ = QLabel("Flèche max sous charges d'exploitation")
@@ -437,9 +459,7 @@ class MainWindow(QMainWindow):
         self.content_verification_layout = QVBoxLayout()
         
         self.content_verification_layout.addWidget(line0)
-        self.content_verification_layout.addLayout(row0)
-        self.content_verification_layout.addLayout(row00)
-        self.content_verification_layout.addLayout(row1)
+        self.content_verification_layout.addLayout(absoluterow0)
         self.content_verification_layout.addLayout(row2)
         self.content_verification_layout.addLayout(row3)
         self.content_verification_layout.addLayout(row4)
@@ -484,7 +504,7 @@ class MainWindow(QMainWindow):
         row2.addWidget(self.choix_mode)
         self.label_freq_mode = QLabel()
         row2.addWidget(self.label_freq_mode)
-        self.label_freq_mode.setText("En attente de calcul")
+        self.label_freq_mode.setText("fréquence du mode choisi : En attente de calcul")
         row2.addStretch()
 
         row_entries = QVBoxLayout()
@@ -492,7 +512,7 @@ class MainWindow(QMainWindow):
         row_entries.addLayout(row2)
         
         self.result_analyse_modale = QPushButton()
-        self.result_analyse_modale.setText("En attente de calcul")
+        self.result_analyse_modale.setText("Effectuer l'analyse modale")
         self.result_analyse_modale.setMaximumHeight(100)
         self.result_analyse_modale.setMinimumWidth(400)
         self.result_analyse_modale.clicked.connect(self._compute_analyse_modale)
@@ -522,6 +542,7 @@ class MainWindow(QMainWindow):
     def _compute_analyse_modale(self):
         
         self._compute()
+        self._calcul_masse_totale()
 
         try:
             self.largeur = float(self.input_largeur.text())
@@ -541,8 +562,9 @@ class MainWindow(QMainWindow):
             elif self.choix_classe.currentText() == "III":
                 self.classe_pont = 3
 
-            result = self.pont.analyse_modale(self.classe_pont, self.largeur, self.poids_plancher, self.masse_surfacique_pietons)
+            result = self.pont.analyse_modale(self.classe_pont, self.largeur, self.poids_plancher, self.masse_surfacique_pietons, 6)
 
+            self.choix_mode.clear()
             for i in range(len(self.pont.freqs)):
                 self.choix_mode.addItem(f"{i+1}")
 
@@ -645,6 +667,26 @@ class MainWindow(QMainWindow):
         # on appelle la focntion des sections car elle change les placeholder
         self._choix_section(self.input_choix_section.currentText())
 
+
+
+    def _calcul_masse_totale(self):
+
+        self._compute()
+
+        try:
+            self.largeur = float(self.input_largeur.text())
+            self.poids_plancher = float(self.input_poids_plancher.text())
+            self.masse_surfacique_pietons = float(self.input_masse_surfacique_pietons.text())
+        except ValueError:
+            self.compute_text.setText("Valeur de la largeur, du poid plancher ou de la masse surfacique piétons non valide")
+
+        try:
+            masse_x, masse_y = self.pont.masse_pont_totale(self.largeur, self.poids_plancher, self.masse_surfacique_pietons)
+
+            self.masse_pont_x.setText(f"Masse du pont en x : {masse_x:.2f} kg")
+            self.masse_pont_y.setText(f"Masse du pont en y : {masse_y:.2f} kg")
+        except (AttributeError, NotImplementedError):
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les supports, les matériaux et les sections")
 
 
     def _verification_fleche_FQ(self):
@@ -982,7 +1024,7 @@ class MainWindow(QMainWindow):
         self.up_text = ""
         self.mid_text = ""
         self.bot_text = ""
-        self.materiau_section_actuel = QLabel("Poutres supérieures : "+self.up_text+"\n"+"Poutres diagonales : "+self.mid_text+"\n"+"Poutres inférieures : "+self.bot_text)
+        self.materiau_section_actuel = QLabel("Poutres supérieures : En attente de calcul"+self.up_text+"\n"+"Poutres diagonales : En attente de calcul"+self.mid_text+"\n"+"Poutres inférieures : En attente de calcul"+self.bot_text)
         row23.addWidget(self.materiau_section_actuel)
         self.materiau_section_actuel.setWordWrap(True)
         self.materiau_section_actuel.setMaximumHeight(100)  
