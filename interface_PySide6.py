@@ -4,6 +4,8 @@ import sys
 
 from Warren_lib import Warren
 
+from datetime import datetime
+
 import matplotlib
 matplotlib.use('QtAgg')
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -21,7 +23,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QStackedLayout,
-    QFrame
+    QFrame,
+    QFileDialog
 )
 
 # classe pour PySide6 trouvé en ligne (https://www.pythonguis.com/tutorials/pyqt6-plotting-matplotlib/)
@@ -85,16 +88,13 @@ class MainWindow(QMainWindow):
         self.button_verification = QPushButton("Vérifications")
         self.button_analyse_modale = QPushButton("Analyse Modale")
         self.button_unites = QPushButton("Unités")
+        self.button_export = QPushButton("Exportation")
 
         self.choix_graphique = QComboBox()
 
         self.compute_text = QLabel("En attente de calcul")
         self.compute_text.setObjectName("compute_text")
         self.compute_text.setWordWrap(True) # Retours à la ligne
-
-        self.button_compute = QPushButton("Calculer structure")
-        self.button_compute.clicked.connect(self._compute)
-        self.button_compute.setObjectName("compute")
 
         self.button_clear = QPushButton("Réinitialiser")
         self.button_clear.clicked.connect(self._clear)
@@ -107,6 +107,7 @@ class MainWindow(QMainWindow):
         self.sidebar.addWidget(self.button_verification)
         self.sidebar.addWidget(self.button_analyse_modale)
         self.sidebar.addWidget(self.button_unites)
+        self.sidebar.addWidget(self.button_export)
 
         self.sidebar_compute_widget = QWidget()
         self.sidebar_compute = QVBoxLayout()
@@ -116,7 +117,6 @@ class MainWindow(QMainWindow):
         self.sidebar_compute.setContentsMargins(10, 20, 10, 20)
 
         self.sidebar_compute.addWidget(self.compute_text)
-        self.sidebar_compute.addWidget(self.button_compute)
         self.sidebar_compute.addWidget(self.button_clear)
 
         self.sidebar.addWidget(self.sidebar_compute_widget)
@@ -136,6 +136,7 @@ class MainWindow(QMainWindow):
         self.button_verification.setObjectName("sidebar")
         self.button_unites.setObjectName("sidebar")
         self.button_analyse_modale.setObjectName("sidebar")
+        self.button_export.setObjectName("sidebar")
 
         # Ajout de la fonction du menu déroulant
         self.choix_graphique.currentTextChanged.connect(self._choix_graphique)
@@ -164,7 +165,7 @@ class MainWindow(QMainWindow):
         self.result_analyse_modale.setText("Effectuer l'analyse modale")
         self.masse_pont_x.setText(f"Masse du pont en x : En attente de calcul (Analyse modale)")
         self.masse_pont_y.setText(f"Masse du pont en y : En attente de calcul (Analyse modale)")
-        self.label_freq_mode.setText("fréquence du mode choisi : En attente de calcul")
+        self.label_freq_mode.setText("Fréquence du mode choisi : En attente de calcul" + "\n" + "Masse modale en X : En attente de calcul" + "\n" + "Masse modale en Y : En attente de calcul")
 
         # on remet les couleurs de base pour les vérifications
         self.label_FQ.setProperty("active", "standBy")
@@ -184,6 +185,8 @@ class MainWindow(QMainWindow):
         self.result_analyse_modale.style().polish(self.result_analyse_modale)
 
     def _choix_graphique(self, text):
+        
+        self._compute()
 
         try:
             if text == "Pont - Base":
@@ -193,52 +196,95 @@ class MainWindow(QMainWindow):
                 self.plot.draw()
                 self.compute_text.setText("Pont avec noeuds et poutres calculé")
         except (NotImplementedError, AttributeError):
+            self.plot._fig_cla()
+            self.plot.draw()
             self.compute_text.setText("Structure non implémentée (h1, h2, h3, L, n)")
+            return
 
         try:
             if text == "Vérif - Déplacements Q":
                 try:
                     self.largeur = float(self.input_largeur.text())
+                    self.pont.set_largeur(self.largeur)
                 except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont non valide")
+                    return
+
+                if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
+                    self.pont.set_chargeExploitation(5)
+                
+                elif self.choix_charge.currentText() == "Selon la longueur":
+                    charge_exploitation = (2 + 120/(self.L+30))
+                    self.pont.set_chargeExploitation(charge_exploitation)
+
                 self.plot._fig_cla()
-                self.pont.ax_plot_deplacement_Q(self.plot.axes, self.largeur)
+                self.pont.ax_plot_deplacement_Q(self.plot.axes)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des déplacements Q calculé")
         except (NotImplementedError, AttributeError):
-            self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
-
+            self.plot._fig_cla()
+            self.plot.draw()
+            self.compute_text.setText("Structure, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, section/matériau)")
+            return
+        
         try:
             if text == "Vérif - Déplacements ELS":
                 try:
                     self.largeur = float(self.input_largeur.text())
                     self.poids_plancher = float(self.input_poids_plancher.text())
+                    self.pont.set_largeur(self.largeur)
+                    self.pont.set_poidsPlancher(self.poids_plancher)
                 except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
+                    return
+                
+                if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
+                    self.pont.set_chargeExploitation(5)
+                
+                elif self.choix_charge.currentText() == "Selon la longueur":
+                    charge_exploitation = (2 + 120/(self.L+30))
+                    self.pont.set_chargeExploitation(charge_exploitation)
+
                 self.plot._fig_cla()
-                self.pont.ax_plot_deplacement_ELS(self.plot.axes, self.largeur, self.poids_plancher)
+                self.pont.ax_plot_deplacement_ELS(self.plot.axes)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des déplacements ELS calculé")
         except (NotImplementedError, AttributeError):
-            self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
-
+            self.plot._fig_cla()
+            self.plot.draw()
+            self.compute_text.setText("Structure, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
+            return
+        
         try:
             if text == "Vérif - Contraintes N ELU":
                 try:
                     self.largeur = float(self.input_largeur.text())
                     self.poids_plancher = float(self.input_poids_plancher.text())
+                    self.pont.set_largeur(self.largeur)
+                    self.pont.set_poidsPlancher(self.poids_plancher)
                 except ValueError:
                     self.compute_text.setText("Valeur de largeur de pont ou poid de plancher non valide")
+                    return
+                
+                if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
+                    self.pont.set_chargeExploitation(5)
+                
+                elif self.choix_charge.currentText() == "Selon la longueur":
+                    charge_exploitation = (2 + 120/(self.L+30))
+                    self.pont.set_chargeExploitation(charge_exploitation)
+                    
                 self.plot._fig_cla()
-                self.pont.ax_plot_contrainte_normale_ELU(self.plot.axes, self.largeur, self.poids_plancher)
+                self.pont.ax_plot_contrainte_normale_ELU(self.plot.axes)
                 self.plot.figure.tight_layout()
                 self.plot.draw()
                 self.compute_text.setText("Vérification des contraintes normales ELU calculé")
         except (NotImplementedError, AttributeError):
-            self.compute_text.setText("Structure, Supports, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
-
+            self.plot._fig_cla()
+            self.plot.draw()
+            self.compute_text.setText("Structure, matériaux ou sections non implémentée (h1, h2, h3, L, n, largeur, poid plancher, section/matériau)")
+            return
 
     def _init_content(self):
         # Page 1
@@ -255,6 +301,9 @@ class MainWindow(QMainWindow):
 
         # Page 5
         self._init_content_unites()
+
+        # Page 6
+        self._init_content_export()
 
         # Liens des tabs dans la sidebar
         self._init_tabs()
@@ -284,19 +333,25 @@ class MainWindow(QMainWindow):
         self.page_analyse_modale.setObjectName("page_analyse_modale")
         self.page_analyse_modale.setLayout(self.content_analyse_modale)
 
+        self.page_export = QWidget()
+        self.page_export.setObjectName("page_export")
+        self.page_export.setLayout(self.content_export)
+
         # Création du tableau des pages pour les tabs
         self.tabs.addWidget(self.page_variable)
         self.tabs.addWidget(self.page_plots)
         self.tabs.addWidget(self.page_verification)
         self.tabs.addWidget(self.page_unites)
         self.tabs.addWidget(self.page_analyse_modale)
+        self.tabs.addWidget(self.page_export)
 
         # Assignation pages-boutons
         self.button_variables.clicked.connect(lambda: (self.tabs.setCurrentIndex(0), self._bouton_actif(self.button_variables)))
-        self.button_plots.clicked.connect(lambda: (self.tabs.setCurrentIndex(1), self._bouton_actif(self.button_plots)))
+        self.button_plots.clicked.connect(lambda: (self.tabs.setCurrentIndex(1), self._bouton_actif(self.button_plots), self._choix_graphique(self.choix_graphique.currentText())))
         self.button_verification.clicked.connect(lambda: (self.tabs.setCurrentIndex(2), self._bouton_actif(self.button_verification)))
         self.button_unites.clicked.connect(lambda: (self.tabs.setCurrentIndex(3), self._bouton_actif(self.button_unites)))
         self.button_analyse_modale.clicked.connect(lambda: (self.tabs.setCurrentIndex(4), self._bouton_actif(self.button_analyse_modale)))
+        self.button_export.clicked.connect(lambda: (self.tabs.setCurrentIndex(5), self._bouton_actif(self.button_export)))
         self._bouton_actif(self.button_variables)
 
         # Ajout au main_widget
@@ -305,12 +360,72 @@ class MainWindow(QMainWindow):
 
 
     def _bouton_actif(self, bouton_actif):
-        for bouton in [self.button_variables, self.button_plots, self.button_verification, self.button_unites, self.button_analyse_modale]:
+        for bouton in [self.button_variables, self.button_plots, self.button_verification, self.button_unites, self.button_analyse_modale, self.button_export]:
             bouton.setProperty("active", bouton == bouton_actif)
             bouton.style().unpolish(bouton)
             bouton.style().polish(bouton)
 
 
+    def _init_content_export(self):
+        self.content_export = QVBoxLayout()
+
+        row1 = QHBoxLayout()
+        button_pdf = QPushButton("Exporter en PDF")
+        button_pdf.clicked.connect(self._export_pdf)
+        button_pdf.setStyleSheet("padding: 80px;")
+        row1.addWidget(button_pdf)
+
+        self.content_export.addLayout(row1)
+        self.content_export.setContentsMargins(250, 0, 250, 0)
+
+
+    def _export_pdf(self):
+
+        self._compute()
+        self._calcul_masse_totale()
+
+        try:
+            self.largeur = float(self.input_largeur.text())
+            self.poids_plancher = float(self.input_poids_plancher.text())
+        except ValueError:
+            self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
+            return
+            
+        try:
+            self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
+            self.pont.set_supports(self.supports)
+
+            if self.choix_classe.currentText() == "I":
+                self.classe_pont = 1
+            elif self.choix_classe.currentText() == "II":
+                self.classe_pont = 2
+            elif self.choix_classe.currentText() == "III":
+                self.classe_pont = 3
+
+            self.pont.set_largeur(self.largeur)
+            self.pont.set_poidsPlancher(self.poids_plancher)
+
+            self.pont.set_classe_pont(self.classe_pont)
+            
+            date_time = datetime.today().strftime('%d-%m-%Y_%Hh%M')
+            default_name = f"note_de_calcul__{date_time}.pdf"
+
+            filepath = QFileDialog.getSaveFileName(self, "Export note de calcul en PDF", default_name, "PDF files (*.pdf)")[0]
+
+            if not filepath:
+                self.compute_text.setText("Exportation vers note PDF annulée.")
+                return
+            
+            if not filepath.lower().endswith(".pdf"):
+                filepath += ".pdf"
+
+            self.pont.make_report_document(filepath)
+
+            self.compute_text.setText("Exportation vers note PDF réussie.")
+
+        except (AttributeError, NotImplementedError):
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les matériaux et les sections")
+            return
 
     def _init_content_variables(self):
         self.content_variables = QHBoxLayout()
@@ -504,7 +619,7 @@ class MainWindow(QMainWindow):
         row2.addWidget(self.choix_mode)
         self.label_freq_mode = QLabel()
         row2.addWidget(self.label_freq_mode)
-        self.label_freq_mode.setText("fréquence du mode choisi : En attente de calcul")
+        self.label_freq_mode.setText("Fréquence du mode choisi : En attente de calcul" + "\n" + "Masse modale en X : En attente de calcul" + "\n" + "Masse modale en Y : En attente de calcul")
         row2.addStretch()
 
         row_entries = QVBoxLayout()
@@ -550,6 +665,7 @@ class MainWindow(QMainWindow):
             self.masse_surfacique_pietons = float(self.input_masse_surfacique_pietons.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur, du poid plancher ou de la masse surfacique piétons non valide")
+            return
             
         try:
             self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
@@ -562,7 +678,13 @@ class MainWindow(QMainWindow):
             elif self.choix_classe.currentText() == "III":
                 self.classe_pont = 3
 
-            result = self.pont.analyse_modale(self.classe_pont, self.largeur, self.poids_plancher, self.masse_surfacique_pietons, 6)
+            self.pont.set_largeur(self.largeur)
+            self.pont.set_poidsPlancher(self.poids_plancher)
+            self.pont.set_masseSurfaciquePietons(self.masse_surfacique_pietons)
+
+            self.pont.set_classe_pont(self.classe_pont)
+            result = self.pont.analyse_modale(6)
+            self.masse_modale_X, self.masse_modale_ratio_X, self.masse_modale_Y, self.masse_modale_ratio_Y = self.pont.masse_modale(6)
 
             self.choix_mode.clear()
             for i in range(len(self.pont.freqs)):
@@ -592,18 +714,28 @@ class MainWindow(QMainWindow):
             
             self._plot_mode()
 
+            self.compute_text.setText("Fréquences propres et masse totale calculés.")
+
         except (AttributeError, NotImplementedError):
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les supports, les matériaux et les sections")
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les matériaux et les sections")
+            return
+        
 
     def _plot_mode(self):
+        
+        if not self.choix_mode.currentText():
+            return
         
         self.mode_actuel = int(self.choix_mode.currentText())
 
         self.freq_actuel = self.pont.freqs[self.mode_actuel-1]
-        self.label_freq_mode.setText(f"fréquence du mode choisi : {self.freq_actuel:.2f}")
+        self.masse_modale_ratio_X_actuel = self.masse_modale_ratio_X[self.mode_actuel-1]
+        self.masse_modale_ratio_Y_actuel = self.masse_modale_ratio_Y[self.mode_actuel-1]
+
+        self.label_freq_mode.setText(f"Fréquence du mode choisi : {self.freq_actuel:.2f}" + "\n" + f"Masse modale en X : {self.masse_modale_ratio_X_actuel:.2f}%" + "\n" + f"Masse modale en Y : {self.masse_modale_ratio_Y_actuel:.2f}%")
 
         self.plot_analyse_modale._fig_cla()
-        self.pont.ax_plot_mode_n(self.plot_analyse_modale.axes, self.mode_actuel, self.largeur, self.poids_plancher, self.masse_surfacique_pietons)
+        self.pont.ax_plot_mode_n(self.plot_analyse_modale.axes, self.mode_actuel, 6)
         self.plot_analyse_modale.draw()
 
     def _init_content_unites(self):
@@ -679,15 +811,20 @@ class MainWindow(QMainWindow):
             self.masse_surfacique_pietons = float(self.input_masse_surfacique_pietons.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur, du poid plancher ou de la masse surfacique piétons non valide")
+            return
 
         try:
-            masse_x, masse_y = self.pont.masse_pont_totale(self.largeur, self.poids_plancher, self.masse_surfacique_pietons)
+            self.pont.set_largeur(self.largeur)
+            self.pont.set_poidsPlancher(self.poids_plancher)
+            self.pont.set_masseSurfaciquePietons(self.masse_surfacique_pietons)
+
+            masse_x, masse_y = self.pont.masse_pont_totale()
 
             self.masse_pont_x.setText(f"Masse du pont en x : {masse_x:.2f} kg")
             self.masse_pont_y.setText(f"Masse du pont en y : {masse_y:.2f} kg")
         except (AttributeError, NotImplementedError):
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les supports, les matériaux et les sections")
-
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la masse surfacique piétons, la structure, les matériaux et les sections")
+            return
 
     def _verification_fleche_FQ(self):
 
@@ -697,16 +834,22 @@ class MainWindow(QMainWindow):
             self.largeur = float(self.input_largeur.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur non valide")
+            return
             
         try:
             self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
             self.pont.set_supports(self.supports)
+
+            self.pont.set_largeur(self.largeur)
+            
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                maxFQ, is_good = self.pont.verification_fleche_Q(self.largeur)
+                self.pont.set_chargeExploitation(5)
+                maxFQ, is_good = self.pont.verification_fleche_Q()
             
             elif self.choix_charge.currentText() == "Selon la longueur":
                 charge_exploitation = (2 + 120/(self.L+30))
-                maxFQ, is_good = self.pont.verification_fleche_Q(self.largeur, charge_exploitation)
+                self.pont.set_chargeExploitation(charge_exploitation)
+                maxFQ, is_good = self.pont.verification_fleche_Q()
 
             maxi = self.pont.L/self.pont.denominateur_Q
 
@@ -723,9 +866,11 @@ class MainWindow(QMainWindow):
                 self.label_FQ.style().unpolish(self.label_FQ)
                 self.label_FQ.style().polish(self.label_FQ)
 
-        except (AttributeError, NotImplementedError):
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, la structure, les supports, les matériaux et les sections")
+            self.compute_text.setText("Vérification flèche sous charge Q réussie")
 
+        except (AttributeError, NotImplementedError):
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, la structure, les matériaux et les sections")
+            return
 
 
     def _verification_fleche_ELS(self):
@@ -737,16 +882,24 @@ class MainWindow(QMainWindow):
             self.poids_plancher = float(self.input_poids_plancher.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
+            return
             
         try:
             self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
             self.pont.set_supports(self.supports)
+
+            self.pont.set_largeur(self.largeur)
+            self.pont.set_poidsPlancher(self.poids_plancher)
+
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poids_plancher)
+                self.pont.set_chargeExploitation(5)
+                maxFELS, is_good = self.pont.verification_fleche_ELS()
             
             elif self.choix_charge.currentText() == "Selon la longueur":
                 charge_exploitation = (2 + 120/(self.L+30))
-                maxFELS, is_good = self.pont.verification_fleche_ELS(self.largeur, self.poids_plancher, charge_exploitation)
+                self.pont.set_chargeExploitation(charge_exploitation)
+
+                maxFELS, is_good = self.pont.verification_fleche_ELS()
 
             maxi = self.pont.L/self.pont.denominateur_ELS
 
@@ -763,9 +916,11 @@ class MainWindow(QMainWindow):
                 self.label_ELS.style().unpolish(self.label_ELS)
                 self.label_ELS.style().polish(self.label_ELS)
 
-        except (AttributeError, NotImplementedError):
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
+            self.compute_text.setText("Vérification flèche sous charge ELS réussie")
 
+        except (AttributeError, NotImplementedError):
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les matériaux et les sections")
+            return
 
 
     def _verification_CNELU(self):
@@ -777,16 +932,24 @@ class MainWindow(QMainWindow):
             self.poids_plancher = float(self.input_poids_plancher.text())
         except ValueError:
             self.compute_text.setText("Valeur de la largeur ou du poid plancher non valide")
+            return
                 
         try:
             self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
             self.pont.set_supports(self.supports)
+
+            self.pont.set_largeur(self.largeur)
+            self.pont.set_poidsPlancher(self.poids_plancher)
+
             if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
-                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poids_plancher)
+                self.pont.set_chargeExploitation(5)
+                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU()
             
             elif self.choix_charge.currentText() == "Selon la longueur":
                 charge_exploitation = (2 + 120/(self.L+30))*10**3
-                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU(self.largeur, self.poids_plancher, charge_exploitation)
+                self.pont.set_chargeExploitation(charge_exploitation)
+
+                maxsigma, is_good = self.pont.verification_contrainte_normale_ELU()
 
             maxi = self.pont.sigma_max_ELU
             
@@ -803,9 +966,11 @@ class MainWindow(QMainWindow):
                 self.label_CNELU.style().unpolish(self.label_CNELU)
                 self.label_CNELU.style().polish(self.label_CNELU)
 
-        except (AttributeError, NotImplementedError):
-            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les supports, les matériaux et les sections")
+            self.compute_text.setText("Vérification contrainte normales sous charge ELU réussie")
 
+        except (AttributeError, NotImplementedError):
+            self.compute_text.setText("Vous devez implémenter la largeur du pont, le poid du plancher, la structure, les matériaux et les sections")
+            return
 
 
     def _content_variables_tab1(self):
@@ -953,6 +1118,7 @@ class MainWindow(QMainWindow):
 
         except ValueError:
             self.compute_text.setText("Valeurs de E, rho, d, h ou e invalide.")
+            return
 
     def _content_variables_tab2(self):
 
@@ -1043,7 +1209,7 @@ class MainWindow(QMainWindow):
         self.tableau2.addLayout(row22)
         self.tableau2.addLayout(row23)
 
-          
+        
 
     def _init_choix_type(self):
         # Ajout des choix
@@ -1086,16 +1252,19 @@ class MainWindow(QMainWindow):
             self.L = float(self.input_L.text())
         except ValueError:
             self.compute_text.setText("Valeur de L non valide")
+            return
 
         try:
             self.n = int(self.input_n.text())
         except ValueError:
             self.compute_text.setText("Valeur de n non valide")
+            return
         
         try:
             self.h1 = float(self.input_h1.text())
         except ValueError:
             self.compute_text.setText("Valeur de h1 non valide")
+            return
 
         if self.choix_type.currentText() == "rectangle":
             
@@ -1104,10 +1273,9 @@ class MainWindow(QMainWindow):
                 self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
                 self.pont.set_supports(self.supports)
 
-                self._choix_graphique(self.choix_graphique.currentText())
-
             except AttributeError:
                 self.compute_text.setText("Valeurs de L, h1, n invalides ou matériaux/sections manquantes")
+                return
 
         elif self.choix_type.currentText() == "parabole sym":
             try:
@@ -1117,11 +1285,12 @@ class MainWindow(QMainWindow):
                     self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
                     self.pont.set_supports(self.supports)
 
-                    self._choix_graphique(self.choix_graphique.currentText())
                 except ValueError:
                     self.compute_text.setText("Valeur de h2 non valide")
+                    return
             except AttributeError:
                 self.compute_text.setText("Valeurs de L, h1, n invalides ou matériaux/sections manquantes")
+                return
 
         elif self.choix_type.currentText() == "parabole non sym":
             try:
@@ -1132,11 +1301,12 @@ class MainWindow(QMainWindow):
                     self.supports = {(0, 0) : "Appui simple", (self.L, 0) : "Articulation"}
                     self.pont.set_supports(self.supports)
 
-                    self._choix_graphique(self.choix_graphique.currentText())
                 except ValueError:
                     self.compute_text.setText("Valeur de h2 ou h3 non valide")
+                    return
             except AttributeError:
                 self.compute_text.setText("Valeurs de L, h1, n invalides ou matériaux/sections manquantes")
+                return
         
           
           
