@@ -251,34 +251,34 @@ class Warren():
 
 
 
-    def set_section_bottom(self, d, e, h=None, Type="tube"):
+    def set_section_bottom(self, d, e, h=None, Type="circulaire"):
         """
-        Définit le type de sections utilisées A par partie de la structure 
+        Définit le type de sections utilisées A pour la membrure inférieure
 
         Parameters
         ----------
         d : int or float
-            diamètre du tube ou longueur du rectangle en mm
+            diamètre de la section circulaire ou longueur de la section rectangulaire en mm
         e : into or float
             épaisseur de la section en mm
         h(default=None) : int or float
-            si type="rectangle" : largeur de la section rectangulaire en mm
-        type(default="tube") : str
-            type de section ("rectangle" or "tube")
+            si type="rectangulaire" : largeur de la section rectangulaire en mm
+        type(default="circulaire") : str
+            type de section ("rectangulaire" or "circulaire")
 
         Returns  
         ----------
         None
         """
-        types = ["rectangle", "tube"]
+        types = ["rectangulaire", "circulaire"]
         if Type not in types:
             raise ValueError("Type de section non pris en charge")
         
         self.section_bot_type = Type
 
-        if Type=="rectangle" and h==None:
+        if Type=="rectangulaire" and h==None:
             raise ValueError("Vous devez rentrer une valeur de largeur pour une section rectangulaire")
-        elif Type=="rectangle" and h!=None:
+        elif Type=="rectangulaire" and h!=None:
             d=d*self.unite_section
             e=e*self.unite_section
             h=h*self.unite_section
@@ -288,7 +288,7 @@ class Warren():
             self.e_bot = e
             self.h_bot = h
         
-        if Type=="tube":
+        if Type=="circulaire":
             d=d*self.unite_section
             e=e*self.unite_section
             r=d/2
@@ -299,34 +299,34 @@ class Warren():
 
 
 
-    def set_section_diagonal(self, d, e, h=None, Type="tube"):
+    def set_section_diagonal(self, d, e, h=None, Type="circulaire"):
         """
-        Définit le type de sections utilisées A par partie de la structure 
+        Définit le type de sections utilisées A pour les membrures diagonales
 
         Parameters
         ----------
         d : int or float
-            diamètre du tube ou longueur du rectangle en mm
+            diamètre de la section circulaire ou longueur de la section rectangulaire en mm
         e : into or float
             épaisseur de la section en mm
         h(default=None) : int or float
-            si type="rectangle" : largeur de la section rectangulaire en mm
-        type(default="tube") : str
-            type de section ("rectangle" or "tube")
+            si type="rectangulaire" : largeur de la section rectangulaire en mm
+        type(default="circulaire") : str
+            type de section ("rectangulaire" or "circulaire")
 
         Returns  
         ----------
         None
         """
-        types = ["rectangle", "tube"]
+        types = ["rectangulaire", "circulaire"]
         if Type not in types:
             raise ValueError("Type de section non pris en charge")
         
         self.section_mid_type = Type
 
-        if Type=="rectangle" and h==None:
+        if Type=="rectangulaire" and h==None:
             raise ValueError("Vous devez rentrer une valeur de largeur pour une section rectangulaire")
-        elif Type=="rectangle" and h!=None:
+        elif Type=="rectangulaire" and h!=None:
             d=d*self.unite_section
             e=e*self.unite_section
             h=h*self.unite_section
@@ -336,7 +336,7 @@ class Warren():
             self.e_mid = e
             self.h_mid = h
         
-        if Type=="tube":
+        if Type=="circulaire":
             d=d*self.unite_section
             e=e*self.unite_section
             r=d/2
@@ -347,34 +347,34 @@ class Warren():
 
 
 
-    def set_section_top(self, d, e, h=None, Type="tube"):
+    def set_section_top(self, d, e, h=None, Type="circulaire"):
         """
-        Définit le type de sections utilisées A par partie de la structure
+        Définit le type de sections utilisées A pour la membrure supérieure
 
         Parameters
         ----------
         d : int or float
-            diamètre du tube ou longueur du rectangle en mm
+            diamètre de la section circulaire ou longueur de la section rectangulaire en mm
         e : into or float
             épaisseur de la section en mm
         h(default=None) : int or float
-            si type="rectangle" : largeur de la section rectangulaire en mm
-        type(default="tube") : str
-            type de section ("rectangle" or "tube")
+            si type="rectangulaire" : largeur de la section rectangulaire en mm
+        type(default="circulaire") : str
+            type de section ("rectangulaire" or "circulaire")
 
         Returns  
         ----------
         None
         """
-        types = ["rectangle", "tube"]
+        types = ["rectangulaire", "circulaire"]
         if Type not in types:
             raise ValueError("Type de section non pris en charge")
         
         self.section_sup_type = Type
 
-        if Type=="rectangle" and h==None:
+        if Type=="rectangulaire" and h==None:
             raise ValueError("Vous devez rentrer une valeur de largeur pour une section rectangulaire")
-        elif Type=="rectangle" and h!=None:
+        elif Type=="rectangulaire" and h!=None:
             d=d*self.unite_section
             e=e*self.unite_section
             h=h*self.unite_section
@@ -384,7 +384,7 @@ class Warren():
             self.e_sup = e
             self.h_sup = h
         
-        if Type=="tube":
+        if Type=="circulaire":
             d=d*self.unite_section
             e=e*self.unite_section
             r=d/2
@@ -395,26 +395,26 @@ class Warren():
 
 
 
-    def set_section_all(self, d, e, h=None, Type="tube"):
+    def set_section_all(self, d, e, h=None, Type="circulaire"):
         """
-        Définit le type de sections utilisées A par partie de la structure 
+        Définit le type de sections utilisées A pour toutes les parties
 
         Parameters
         ----------
         d : int or float
-            diamètre du tube ou longueur du rectangle en mm
+            diamètre de la section circulaire ou longueur de la section rectangulaire en mm
         e : into or float
             épaisseur de la section en mm
         h(default=None) : int or float
-            si type="rectangle" : largeur de la section rectangulaire en mm
-        type(default="tube") : str
-            type de section ("rectangle" or "tube")
+            si type="rectangulaire" : largeur de la section rectangulaire en mm
+        type(default="circulaire") : str
+            type de section ("rectangulaire" or "circulaire")
 
         Returns  
         ----------
         None
         """
-        types = ["rectangle", "tube"]
+        types = ["rectangulaire", "circulaire"]
         if Type not in types:
             raise ValueError("Type de section non pris en charge")
         
@@ -422,9 +422,9 @@ class Warren():
         self.section_mid_type = Type
         self.section_bot_type = Type
 
-        if Type=="rectangle" and h==None:
+        if Type=="rectangulaire" and h==None:
             raise ValueError("Vous devez rentrer une valeur de largeur pour une section rectangulaire")
-        elif Type=="rectangle" and h!=None:
+        elif Type=="rectangulaire" and h!=None:
             d=d*self.unite_section
             e=e*self.unite_section
             h=h*self.unite_section
@@ -446,7 +446,7 @@ class Warren():
             self.h_sup = h
 
         
-        if Type=="tube":
+        if Type=="circulaire":
             d=d*self.unite_section
             e=e*self.unite_section
             r=d/2
@@ -874,7 +874,7 @@ class Warren():
             raise NotImplementedError("Afin d'afficher le pont, vous devez implémenter la structure.")
 
         # Plot des noeuds
-        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, color="r")
+        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, color="r")
         for n, node in enumerate(self.nodes):
             plt.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
 
@@ -920,7 +920,7 @@ class Warren():
             raise NotImplementedError("Afin d'afficher le pont, vous devez implémenter la structure.")
 
         # Plot des noeuds
-        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, color="r")
+        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, color="r")
         for n, node in enumerate(self.nodes):
             ax.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
 
@@ -953,7 +953,7 @@ class Warren():
             raise NotImplementedError("Afin d'afficher le pont, vous devez implémenter la structure, les forces et les supports.")
 
         # Plot des noeuds
-        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, color="r")
+        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, color="r")
         for n, node in enumerate(self.nodes):
             plt.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
 
@@ -1039,7 +1039,7 @@ class Warren():
             raise NotImplementedError("Afin d'afficher le pont, vous devez implémenter la structure, les forces et les supports.")
 
         # Plot des noeuds
-        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, color="r")
+        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, color="r")
         for n, node in enumerate(self.nodes):
             ax.annotate(f"N{n}", (node[0]+0.1, node[1]+0.1), color="r", size=6, ha="left") # annotation du numéro du noeud
 
@@ -1263,9 +1263,9 @@ class Warren():
         self._vecteurDeplacement()
 
         # Plot des noeuds avant/après
-        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, c="r")
+        plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, c="r")
 
-        plt.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=10, c="r")
+        plt.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=6, c="r")
 
         # Plot des flèches de mesures du déplacement
         for i in range(self.n_nodes_total):
@@ -1357,9 +1357,9 @@ class Warren():
         nodes_after_scale = self.nodes+self.u.reshape(-1, 2)*scale
 
         # Plot des noeuds avant/après
-        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, c="r")
+        ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, c="r")
 
-        ax.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=10, c="r")
+        ax.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=6, c="r")
 
         # Plot des flèches de mesures du déplacement
         for i in range(self.n_nodes_total):
@@ -1817,9 +1817,9 @@ class Warren():
 
         # Plot des noeuds avant/après
         if show_nodes:
-            plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, c="r")
+            plt.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, c="r")
 
-            plt.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=10, c="r")
+            plt.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=6, c="r")
 
         # Plot des flèches de mesures du déplacement
         if show_arrows:
@@ -1900,9 +1900,9 @@ class Warren():
 
         # Plot des noeuds avant/après
         if show_nodes:
-            ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=10, c="r")
+            ax.scatter(self.nodes[:, 0], self.nodes[:, 1], marker="o", s=6, c="r")
 
-            ax.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=10, c="r")
+            ax.scatter(nodes_after_scale[:, 0], nodes_after_scale[:, 1], marker="o", s=6, c="r")
 
         # Plot des flèches de mesures du déplacement
         if show_arrows:
@@ -2636,25 +2636,25 @@ class Warren():
                      
         if self.type == "rectangle":
             self.story.append(Paragraph("<u>Structure à membrures parallèles</u>", self.heading2Colored))
-            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L:.2f} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Largeur du pont : <em>{self.largeur} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Nombre de noeuds sur la membrure inférieure (hors support) : <em>{self.n_nodes_bottom-2}</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont : <em>{self.h1:.2f} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur du pont : <em>{self.h1} m</em> .", self.styles["Normal"]))
         elif self.type == "parabole sym":
             self.story.append(Paragraph("<u>Structure à corde supérieure parabolique</u>", self.heading2Colored))
-            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L:.2f} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Largeur du pont : <em>{self.largeur} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Nombre de noeuds sur la membrure inférieure (hors support) : <em>{self.n_nodes_bottom-2}</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à la flèche : <em>{self.h1:.2f} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont aux extrémités de la parabole : <em>{self.h2:.2f} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur du pont à la flèche : <em>{self.h1} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur du pont aux extrémités de la parabole : <em>{self.h2} m</em> .", self.styles["Normal"]))
         elif self.type == "parabole non sym":
             self.story.append(Paragraph("<u>Structure à corde supérieure parabolique dissymétrique</u>", self.heading2Colored))
-            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L:.2f} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Largeur du pont : <em>{self.largeur} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Nombre de noeuds sur la membrure inférieure (hors support) : <em>{self.n_nodes_bottom-2}</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à la flèche : <em>{self.h1:.2f} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à l'extrémité <b>gauche</b> de la parabole : <em>{self.h2:.2f} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à l'extrémité <b>droite</b> de la parabole : <em>{self.h3:.2f} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur du pont à la flèche : <em>{self.h1} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur du pont à l'extrémité <b>gauche</b> de la parabole : <em>{self.h2} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur du pont à l'extrémité <b>droite</b> de la parabole : <em>{self.h3} m</em> .", self.styles["Normal"]))
 
 
 
@@ -2753,38 +2753,38 @@ class Warren():
         title_mid = Paragraph("<u>Membrures diagonales</u>", self.heading4Colored)
         title_bot = Paragraph("<u>Membrure inférieure</u>", self.heading4Colored)
 
-        if self.section_bot_type == "tube":
+        if self.section_bot_type == "circulaire":
             membrure_bot = [title_bot,
-                            Paragraph(f"Section cylindrique (dxe) : <em>{self.d_bot:.1f}x{self.e_bot:.1f} mm</em> .", self.styles["Normal"]),
-                            Paragraph(f"Masse volumique : <em>{self.rho_vector[0]:.2f} kg/m<super>3</super></em> ."),
-                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[0]:.2f} MPa</em> .")]
-        elif self.section_bot_type == "rectangle":
+                            Paragraph(f"Section cylindrique (dxe) : <em>{self.d_bot}x{self.e_bot} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Masse volumique : <em>{self.rho_vector[0]} kg/m<super>3</super></em> ."),
+                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[0]} MPa</em> .")]
+        elif self.section_bot_type == "rectangulaire":
             membrure_bot = [title_bot,
-                            Paragraph(f"Section tube (lxhxe) : <em>{self.d_bot:.1f}x{self.h_bot:.1f}x{self.e_bot:.1f} mm</em> .", self.styles["Normal"]),
-                            Paragraph(f"Masse volumique : <em>{self.rho_vector[0]:.2f} kg/m<super>3</super></em> ."),
-                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[0]:.2f} MPa</em> .")]
+                            Paragraph(f"Section circulaire (lxhxe) : <em>{self.d_bot}x{self.h_bot}x{self.e_bot} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Masse volumique : <em>{self.rho_vector[0]} kg/m<super>3</super></em> ."),
+                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[0]} MPa</em> .")]
 
-        if self.section_mid_type == "tube":
+        if self.section_mid_type == "circulaire":
             membrure_mid = [title_mid,
-                            Paragraph(f"Section cylindrique (dxe) : <em>{self.d_mid:.1f}x{self.e_mid:.1f} mm</em> .", self.styles["Normal"]),
-                            Paragraph(f"Masse volumique : <em>{self.rho_vector[1]:.2f} kg/m<super>3</super></em> ."),
-                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[1]:.2f} MPa</em> .")]
-        elif self.section_mid_type == "rectangle":
+                            Paragraph(f"Section cylindrique (dxe) : <em>{self.d_mid}x{self.e_mid} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Masse volumique : <em>{self.rho_vector[1]} kg/m<super>3</super></em> ."),
+                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[1]} MPa</em> .")]
+        elif self.section_mid_type == "rectangulaire":
             membrure_mid = [title_mid,
-                            Paragraph(f"Section tube (lxhxe) : <em>{self.d_mid:.1f}x{self.h_mid:.1f}x{self.e_mid:.1f} mm</em> .", self.styles["Normal"]),
-                            Paragraph(f"Masse volumique : <em>{self.rho_vector[1]:.2f} kg/m<super>3</super></em> ."),
-                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[1]:.2f} MPa</em> .")]
+                            Paragraph(f"Section circulaire (lxhxe) : <em>{self.d_mid}x{self.h_mid}x{self.e_mid} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Masse volumique : <em>{self.rho_vector[1]} kg/m<super>3</super></em> ."),
+                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[1]} MPa</em> .")]
 
-        if self.section_sup_type== "tube":
+        if self.section_sup_type== "circulaire":
             membrure_sup = [title_sup,
-                            Paragraph(f"Section cylindrique (dxe) : <em>{self.d_sup:.1f}x{self.e_sup:.1f} mm</em> .", self.styles["Normal"]),
-                            Paragraph(f"Masse volumique : <em>{self.rho_vector[2]:.2f} kg/m<super>3</super></em> ."),
-                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[2]:.2f} MPa</em> .")]
-        elif self.section_sup_type == "rectangle":
+                            Paragraph(f"Section cylindrique (dxe) : <em>{self.d_sup}x{self.e_sup} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Masse volumique : <em>{self.rho_vector[2]} kg/m<super>3</super></em> ."),
+                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[2]} MPa</em> .")]
+        elif self.section_sup_type == "rectangulaire":
             membrure_sup = [title_sup,
-                            Paragraph(f"Section tube (lxhxe) : <em>{self.d_sup:.1f}x{self.h_sup:.1f}x{self.e_sup:.1f} mm</em> .", self.styles["Normal"]),
-                            Paragraph(f"Masse volumique : <em>{self.rho_vector[2]:.2f} kg/m<super>3</super></em> ."),
-                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[2]:.2f} MPa</em> .")]
+                            Paragraph(f"Section circulaire (lxhxe) : <em>{self.d_sup}x{self.h_sup}x{self.e_sup} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Masse volumique : <em>{self.rho_vector[2]} kg/m<super>3</super></em> ."),
+                            Paragraph(f"Module d'élasticité : <em>{self.E_vector[2]} MPa</em> .")]
             
         image_pont = self._get_plot_image()
 
@@ -2817,8 +2817,8 @@ class Warren():
     def _eurocode_rapport(self):
         self.story.append(Paragraph("<u>Vérification Eurocode</u>", self.heading2Colored))
 
-        self.story.append(Paragraph(f"Poids du plancher du pont : <em>{self.poids_plancher:.2f} kN/m<super>2</super></em> .", self.styles["Normal"]))
-        self.story.append(Paragraph(f"Charge surfacique d'exploitation : <em>{self.charge_exploitation:.2f} kN/m<super>2</super></em> .", self.styles["Normal"]))
+        self.story.append(Paragraph(f"Poids du plancher du pont : <em>{self.poids_plancher} kN/m<super>2</super></em> .", self.styles["Normal"]))
+        self.story.append(Paragraph(f"Charge surfacique d'exploitation : <em>{self.charge_exploitation} kN/m<super>2</super></em> .", self.styles["Normal"]))
 
         self.story.append(Paragraph(f"Charges ELU : <em>{self.coef_Q_ELU}*Q + {self.coef_G_ELU}*G</em> .", self.styles["Normal"]))
 
@@ -2899,10 +2899,10 @@ class Warren():
         masse_x_pietons, masse_y_pietons = self.masse_pont_totale()
 
         if (masse_x == masse_y) and (masse_x_pietons == masse_y_pietons):
-            self.story.append(Paragraph(f"<b>Masse totale du pont :</b> <em>{masse_y:.2f} kg</em> (sans piétons), <em>{masse_y_pietons:.2f} kg</em> (avec piétons) ."))
+            self.story.append(Paragraph(f"<b>Masse totale du pont :</b> <em>{masse_y:.1f} kg</em> (sans piétons), <em>{masse_y_pietons:.1f} kg</em> (avec piétons) ."))
             
         else:
-            self.story.append(Paragraph(f"<b>Masse totale du pont :</b> <em>{masse_x:.2f} kg en x et {masse_y:.2f} kg en y</em> (sans piétons), <em>{masse_x_pietons:.2f} kg en x et {masse_y_pietons:.2f} kg en y</em> (avec piétons) ."))
+            self.story.append(Paragraph(f"<b>Masse totale du pont :</b> <em>{masse_x:.1f} kg en x et {masse_y:.1f} kg en y</em> (sans piétons), <em>{masse_x_pietons:.1f} kg en x et {masse_y_pietons:.1f} kg en y</em> (avec piétons) ."))
 
         # Sans pietons
         self.set_masseSurfaciquePietons(0)
@@ -2935,8 +2935,8 @@ class Warren():
         list_masse_modale = []
         for i in range(6):
             label = [
-                Paragraph(f"M<sub>jx</sub> : <em>{masse_modale_ratio_X[i]:.2f}%</em>", self.styles["Normal"]),
-                Paragraph(f"M<sub>jy</sub> : <em>{masse_modale_ratio_Y[i]:.2f}%</em>", self.styles["Normal"])
+                Paragraph(f"M<sub>jx</sub> : <em>{masse_modale_ratio_X[i]:.1f}%</em>", self.styles["Normal"]),
+                Paragraph(f"M<sub>jy</sub> : <em>{masse_modale_ratio_Y[i]:.1f}%</em>", self.styles["Normal"])
             ]
             list_masse_modale.append(label)
 
@@ -2967,8 +2967,8 @@ class Warren():
         list_masse_modale2 = []
         for i in range(6):
             label = [
-                Paragraph(f"M<sub>jx</sub> : <em>{masse_modale_ratio_X2[i]:.2f}%</em>", self.styles["Normal"]),
-                Paragraph(f"M<sub>jy</sub> : <em>{masse_modale_ratio_Y2[i]:.2f}%</em>", self.styles["Normal"])
+                Paragraph(f"M<sub>jx</sub> : <em>{masse_modale_ratio_X2[i]:.1f}%</em>", self.styles["Normal"]),
+                Paragraph(f"M<sub>jy</sub> : <em>{masse_modale_ratio_Y2[i]:.1f}%</em>", self.styles["Normal"])
             ]
             list_masse_modale2.append(label)
 

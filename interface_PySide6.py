@@ -382,7 +382,6 @@ class MainWindow(QMainWindow):
     def _export_pdf(self):
 
         self._compute()
-        self._calcul_masse_totale()
 
         try:
             self.largeur = float(self.input_largeur.text())
@@ -401,6 +400,13 @@ class MainWindow(QMainWindow):
                 self.classe_pont = 2
             elif self.choix_classe.currentText() == "III":
                 self.classe_pont = 3
+
+            if self.choix_charge.currentText() == "Standard (~5 kN/m^2)":
+                self.pont.set_chargeExploitation(5)
+                
+            elif self.choix_charge.currentText() == "Selon la longueur":
+                charge_exploitation = (2 + 120/(self.L+30))
+                self.pont.set_chargeExploitation(charge_exploitation)
 
             self.pont.set_largeur(self.largeur)
             self.pont.set_poidsPlancher(self.poids_plancher)
@@ -1017,7 +1023,7 @@ class MainWindow(QMainWindow):
         row15 = QHBoxLayout()
         row15.addWidget(QLabel("n ="))
         self.input_n = QLineEdit()
-        self.input_n.setPlaceholderText("nombre de noeuds sur la partie inférieure du pont (ex: 7)")
+        self.input_n.setPlaceholderText("nombre de noeuds sur la partie inférieure du pont avec supports (ex: 7)")
         row15.addWidget(self.input_n)  
 
         
@@ -1037,39 +1043,39 @@ class MainWindow(QMainWindow):
 
 
     def _choix_section(self, text):
-        if text == "tube" and self.choix_unite_section.currentText() == "mm":
+        if text == "circulaire" and self.choix_unite_section.currentText() == "mm":
             self.input_h.setDisabled(True)
-            self.input_h.setPlaceholderText("Vous êtes en section de type tube")
-            self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
-            self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
-        elif text == "rectangle" and self.choix_unite_section.currentText() == "mm":
+            self.input_h.setPlaceholderText("Vous êtes en section de type circulaire")
+            self.input_d.setPlaceholderText("diamètre du circulaire en mm (ex: 200)")
+            self.input_e.setPlaceholderText("épaisseur du circulaire en mm (ex: 8)")
+        elif text == "rectangulaire" and self.choix_unite_section.currentText() == "mm":
             self.input_h.setDisabled(False)
-            self.input_h.setPlaceholderText("largeur du rectangle en mm (ex: 150)")
-            self.input_d.setPlaceholderText("longueur du rectangle en mm (ex: 200)")
-            self.input_e.setPlaceholderText("épaisseur du rectangle en mm (ex: 10)")
+            self.input_h.setPlaceholderText("largeur du rectangulaire en mm (ex: 150)")
+            self.input_d.setPlaceholderText("longueur du rectangulaire en mm (ex: 200)")
+            self.input_e.setPlaceholderText("épaisseur du rectangulaire en mm (ex: 10)")
 
-        if text == "tube" and self.choix_unite_section.currentText() == "m":
+        if text == "circulaire" and self.choix_unite_section.currentText() == "m":
             self.input_h.setDisabled(True)
-            self.input_h.setPlaceholderText("Vous êtes en section de type tube")
-            self.input_d.setPlaceholderText("diamètre du tube en m (ex: 0.2)")
-            self.input_e.setPlaceholderText("épaisseur du tube en m (ex: 8e-3)")
-        elif text == "rectangle" and self.choix_unite_section.currentText() == "m":
+            self.input_h.setPlaceholderText("Vous êtes en section de type circulaire")
+            self.input_d.setPlaceholderText("diamètre du circulaire en m (ex: 0.2)")
+            self.input_e.setPlaceholderText("épaisseur du circulaire en m (ex: 8e-3)")
+        elif text == "rectangulaire" and self.choix_unite_section.currentText() == "m":
             self.input_h.setDisabled(False)
-            self.input_h.setPlaceholderText("largeur du rectangle en m (ex: 0.15)")
-            self.input_d.setPlaceholderText("longueur du rectangle en m (ex: 0.2)")
-            self.input_e.setPlaceholderText("épaisseur du rectangle en m (ex: 1e-2)")
+            self.input_h.setPlaceholderText("largeur du rectangulaire en m (ex: 0.15)")
+            self.input_d.setPlaceholderText("longueur du rectangulaire en m (ex: 0.2)")
+            self.input_e.setPlaceholderText("épaisseur du rectangulaire en m (ex: 1e-2)")
 
-    def _add_material_section(self):
+    def _add_material_section(self):    
         
         try:
             if self.input_choix_endroit.currentText() == "inférieures":
                 self.pont.set_materials_bottom(float(self.input_E.text()), float(self.input_rho.text()))
                 
-                if self.input_choix_section.currentText() == "tube":
+                if self.input_choix_section.currentText() == "circulaire":
                     self.pont.set_section_bottom(float(self.input_d.text()), float(self.input_e.text()))
                 
-                elif self.input_choix_section.currentText() == "rectangle":
-                    self.pont.set_section_bottom(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangle")
+                elif self.input_choix_section.currentText() == "rectangulaire":
+                    self.pont.set_section_bottom(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangulaire")
                 
                 self.compute_text.setText("Matériau/Section des poutres basses ajoutées.")
                 self.bot_text = f"E = {self.pont.E_vector[0]:.1f} MPa, A = {self.pont.A_vector[0]:.1f} mm^2 et rho = {self.pont.rho_vector[0]:.1f} kg/m^3."
@@ -1078,37 +1084,37 @@ class MainWindow(QMainWindow):
             if self.input_choix_endroit.currentText() == "diagonales":
                 self.pont.set_materials_diagonal(float(self.input_E.text()), float(self.input_rho.text()))
                 
-                if self.input_choix_section.currentText() == "tube":
+                if self.input_choix_section.currentText() == "circulaire":
                     self.pont.set_section_diagonal(float(self.input_d.text()), float(self.input_e.text()))
                 
-                elif self.input_choix_section.currentText() == "rectangle":
-                    self.pont.set_section_diagonal(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangle")
+                elif self.input_choix_section.currentText() == "rectangulaire":
+                    self.pont.set_section_diagonal(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangulaire")
                 
                 self.compute_text.setText("Matériau/Section des poutres diagonales ajoutées.")
-                self.mid_text = f"E = {self.pont.E_vector[1]:.1f} MPa, A = {self.pont.A_vector[1]:.1f} mm^2 et rho = {self.pont.rho_vector[0]:.1f} kg/m^3."
+                self.mid_text = f"E = {self.pont.E_vector[1]:.1f} MPa, A = {self.pont.A_vector[1]:.1f} mm^2 et rho = {self.pont.rho_vector[1]:.1f} kg/m^3."
                 self.materiau_section_actuel.setText("Poutres supérieures : "+self.up_text+"\n"+"Poutres diagonales : "+self.mid_text+"\n"+"Poutres inférieures : "+self.bot_text)
             
             if self.input_choix_endroit.currentText() == "supérieures":
                 self.pont.set_materials_top(float(self.input_E.text()), float(self.input_rho.text()))
                 
-                if self.input_choix_section.currentText() == "tube":
+                if self.input_choix_section.currentText() == "circulaire":
                     self.pont.set_section_top(float(self.input_d.text()), float(self.input_e.text()))
                 
-                elif self.input_choix_section.currentText() == "rectangle":
-                    self.pont.set_section_top(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangle")
+                elif self.input_choix_section.currentText() == "rectangulaire":
+                    self.pont.set_section_top(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangulaire")
                 
                 self.compute_text.setText("Matériau/Section des poutres supérieures ajoutées.")
-                self.up_text = f"E = {self.pont.E_vector[2]:.1f} MPa, A = {self.pont.A_vector[2]:.1f} mm^2 et rho = {self.pont.rho_vector[0]:.1f} kg/m^3."
+                self.up_text = f"E = {self.pont.E_vector[2]:.1f} MPa, A = {self.pont.A_vector[2]:.1f} mm^2 et rho = {self.pont.rho_vector[2]:.1f} kg/m^3."
                 self.materiau_section_actuel.setText("Poutres supérieures : "+self.up_text+"\n"+"Poutres diagonales : "+self.mid_text+"\n"+"Poutres inférieures : "+self.bot_text)
 
             if self.input_choix_endroit.currentText() == "toutes":
                 self.pont.set_materials_all(float(self.input_E.text()), float(self.input_rho.text()))
                 
-                if self.input_choix_section.currentText() == "tube":
+                if self.input_choix_section.currentText() == "circulaire":
                     self.pont.set_section_all(float(self.input_d.text()), float(self.input_e.text()))
                 
-                elif self.input_choix_section.currentText() == "rectangle":
-                    self.pont.set_section_all(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangle")
+                elif self.input_choix_section.currentText() == "rectangulaire":
+                    self.pont.set_section_all(float(self.input_d.text()), float(self.input_e.text()), float(self.input_h.text()), "rectangulaire")
                 
                 self.compute_text.setText("Matériau/Section de toutes les poutres ajoutées.")
                 self.up_text = f"E = {self.pont.E_vector[2]:.1f} MPa, A = {self.pont.A_vector[2]:.1f} mm^2 et rho = {self.pont.rho_vector[0]:.1f} kg/m^3."
@@ -1130,8 +1136,8 @@ class MainWindow(QMainWindow):
         row16 = QHBoxLayout()
         row16.addWidget(QLabel("Type de section :"))
         self.input_choix_section = QComboBox()
-        self.input_choix_section.addItem("tube")
-        self.input_choix_section.addItem("rectangle")
+        self.input_choix_section.addItem("circulaire")
+        self.input_choix_section.addItem("rectangulaire")
         row16.addWidget(self.input_choix_section) 
         self.input_choix_endroit = QComboBox()
         self.input_choix_endroit.addItem("toutes")
@@ -1147,14 +1153,14 @@ class MainWindow(QMainWindow):
         row17 = QHBoxLayout()
         row17.addWidget(QLabel("d ="))
         self.input_d = QLineEdit()
-        self.input_d.setPlaceholderText("diamètre du tube en mm (ex: 200)")
+        self.input_d.setPlaceholderText("diamètre du circulaire en mm (ex: 200)")
         row17.addWidget(self.input_d) 
 
         # Entrée texte h
         row18 = QHBoxLayout()
         row18.addWidget(QLabel("h ="))
         self.input_h = QLineEdit()
-        self.input_h.setPlaceholderText("Vous êtes en type de section tube")
+        self.input_h.setPlaceholderText("Vous êtes en type de section circulaire")
         row18.addWidget(self.input_h) 
         self.input_h.setDisabled(True)
 
@@ -1162,7 +1168,7 @@ class MainWindow(QMainWindow):
         row19 = QHBoxLayout()
         row19.addWidget(QLabel("e ="))
         self.input_e = QLineEdit()
-        self.input_e.setPlaceholderText("épaisseur du tube en mm (ex: 8)")
+        self.input_e.setPlaceholderText("épaisseur du circulaire en mm (ex: 8)")
         row19.addWidget(self.input_e) 
 
         # Entrée texte E
