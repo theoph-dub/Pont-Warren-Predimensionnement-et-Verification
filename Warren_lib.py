@@ -2742,7 +2742,7 @@ class Warren():
 
         buf.seek(0)
 
-        return Image(buf, width=260, height=180)
+        return Image(buf, width=240, height=180)
         
 
 
@@ -2796,7 +2796,7 @@ class Warren():
 
         table = Table(
             data_tab,
-            colWidths=[220, 260]  # ≈ 1/3 et 2/3 page A4
+            colWidths=[240, 240]  # ≈ 1/3 et 2/3 page A4
         )
         
         table.setStyle(TableStyle([
@@ -2817,7 +2817,7 @@ class Warren():
     def _eurocode_rapport(self):
         self.story.append(Paragraph("<u>Vérification Eurocode</u>", self.heading2Colored))
 
-        self.story.append(Paragraph(f"Poids du plancher du pont : <em>{self.poids_plancher} kN/m<super>2</super></em> .", self.styles["Normal"]))
+        self.story.append(Paragraph(f"Poids du plancher : <em>{self.poids_plancher} kN/m<super>2</super></em> .", self.styles["Normal"]))
         self.story.append(Paragraph(f"Charge surfacique d'exploitation : <em>{self.charge_exploitation} kN/m<super>2</super></em> .", self.styles["Normal"]))
 
         self.story.append(Paragraph(f"Charges ELU : <em>{self.coef_Q_ELU}*Q + {self.coef_G_ELU}*G</em> .", self.styles["Normal"]))
@@ -2880,13 +2880,13 @@ class Warren():
         self.story.append(Paragraph("<u>Analyse modale</u>", self.heading2Colored))
 
         if self.classe == 1:
-            self.story.append(Paragraph("Pont de classe : <em>I</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph("Passerelle de classe : <em>I</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Plage de fréquences à risque : <em>{self.classe_I_II_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_I_II_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
         elif self.classe == 2:
-            self.story.append(Paragraph("Pont de classe : <em>II</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph("Passerelle de classe : <em>II</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Plage de fréquences à risque : <em>{self.classe_I_II_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_I_II_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
         elif self.classe == 3:
-            self.story.append(Paragraph("Pont de classe : <em>III</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph("Passerelle de classe : <em>III</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Plage de fréquences à risque : <em>{self.classe_III_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_III_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
 
         before_masseSurf = self.masse_surfacique_pietons
@@ -2899,10 +2899,10 @@ class Warren():
         masse_x_pietons, masse_y_pietons = self.masse_pont_totale()
 
         if (masse_x == masse_y) and (masse_x_pietons == masse_y_pietons):
-            self.story.append(Paragraph(f"<b>Masse totale du pont :</b> <em>{masse_y:.1f} kg</em> (sans piétons), <em>{masse_y_pietons:.1f} kg</em> (avec piétons) ."))
+            self.story.append(Paragraph(f"<b>Masse totale structure :</b> <em>{masse_y:.1f} kg</em> (sans piétons), <em>{masse_y_pietons:.1f} kg</em> (avec piétons) ."))
             
         else:
-            self.story.append(Paragraph(f"<b>Masse totale du pont :</b> <em>{masse_x:.1f} kg en x et {masse_y:.1f} kg en y</em> (sans piétons), <em>{masse_x_pietons:.1f} kg en x et {masse_y_pietons:.1f} kg en y</em> (avec piétons) ."))
+            self.story.append(Paragraph(f"<b>Masse totale structure :</b> <em>{masse_x:.1f} kg en x et {masse_y:.1f} kg en y</em> (sans piétons), <em>{masse_x_pietons:.1f} kg en x et {masse_y_pietons:.1f} kg en y</em> (avec piétons) ."))
 
         # Sans pietons
         self.set_masseSurfaciquePietons(0)
