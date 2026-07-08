@@ -18,11 +18,12 @@ Cette application permet le pré-dimensionnement de pont Warren et la vérificat
   - `matplotlib`
   - `numpy`
   - `scipy`
+  - `reportlab`
 
 ## :round_pushpin: Installation
 
 ```bash
-pip install PySide6 matplotlib numpy scipy
+pip install PySide6 matplotlib numpy scipy reportlab
 ```
 
 Le fichier `parameters.json` et `Warren_lib.py`doivent être dans le même dossier que le fichier `interface_PySide6.py`.
@@ -43,7 +44,8 @@ Dans l'application, vous pouvez suivre ces étapes :
 4. **Graphiques** : visualiser le pont de base ou les résultats de vérification via le menu déroulant.
 5. **Vérifications** : entrer la largeur du pont et le poids du plancher, choisir le type de charge d'exploitation, puis lancer les vérifications (flèche Q, flèche ELS, contrainte normale ELU).
 6. **Analyse Modale** : entrer la masse surfacique de piéton ainsi que la classe du pont pour vérifier ses modes propres ainsi que leur forme.
-7. **Réinitialiser** : remet le pont et les vérifications à zéro.
+7. **Export PDF** : exporter la note de calcul en pdf dans le dossier choisi.
+8. **Réinitialiser** : remet le pont et les vérifications à zéro.
 
 ## :wrench: Fichier paramètres
 
@@ -52,3 +54,4 @@ Le fichier `parameters.json` contient les paramètres définis comme norme à su
 - `coef_G_ELU` / `coef_Q_ELU` : coefficients des charges permanentes (G) et d'exploitation (Q) à l'ELU.
 - `sigma_max_ELU` : contrainte normale admissible en MPa.
 - `denominateur_fleche_max_Q` / `denominateur_fleche_max_ELS` : la flèche maximum est `L / denominateur`.
+- `classe_I_II_verti_longi` / `classe_III_verti_longi` : valeurs limites basses et hautes des fréquences à risque.

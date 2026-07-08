@@ -2636,25 +2636,25 @@ class Warren():
                      
         if self.type == "rectangle":
             self.story.append(Paragraph("<u>Structure à membrures parallèles</u>", self.heading2Colored))
-            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Largeur du pont : <em>{self.largeur} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Longueur : <em>{self.L} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Largeur : <em>{self.largeur} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Nombre de noeuds sur la membrure inférieure (hors support) : <em>{self.n_nodes_bottom-2}</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont : <em>{self.h1} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur : <em>{self.h1} m</em> .", self.styles["Normal"]))
         elif self.type == "parabole sym":
-            self.story.append(Paragraph("<u>Structure à corde supérieure parabolique</u>", self.heading2Colored))
-            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Largeur du pont : <em>{self.largeur} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph("<u>Structure à membrure supérieure parabolique</u>", self.heading2Colored))
+            self.story.append(Paragraph(f"Longueur : <em>{self.L} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Largeur : <em>{self.largeur} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Nombre de noeuds sur la membrure inférieure (hors support) : <em>{self.n_nodes_bottom-2}</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à la flèche : <em>{self.h1} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont aux extrémités de la parabole : <em>{self.h2} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur à mi-portée : <em>{self.h1} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur aux extrémités de la parabole : <em>{self.h2} m</em> .", self.styles["Normal"]))
         elif self.type == "parabole non sym":
-            self.story.append(Paragraph("<u>Structure à corde supérieure parabolique dissymétrique</u>", self.heading2Colored))
-            self.story.append(Paragraph(f"Longueur du pont : <em>{self.L} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Largeur du pont : <em>{self.largeur} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph("<u>Structure à membrure supérieure parabolique dissymétrique</u>", self.heading2Colored))
+            self.story.append(Paragraph(f"Longueur : <em>{self.L} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Largeur : <em>{self.largeur} m</em> .", self.styles["Normal"]))
             self.story.append(Paragraph(f"Nombre de noeuds sur la membrure inférieure (hors support) : <em>{self.n_nodes_bottom-2}</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à la flèche : <em>{self.h1} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à l'extrémité <b>gauche</b> de la parabole : <em>{self.h2} m</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Hauteur du pont à l'extrémité <b>droite</b> de la parabole : <em>{self.h3} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur à mi-portée : <em>{self.h1} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur à l'extrémité <b>gauche</b> de la parabole : <em>{self.h2} m</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Hauteur à l'extrémité <b>droite</b> de la parabole : <em>{self.h3} m</em> .", self.styles["Normal"]))
 
 
 
@@ -2881,13 +2881,13 @@ class Warren():
 
         if self.classe == 1:
             self.story.append(Paragraph("Pont de classe : <em>I</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Plage de fréquences dangereuses : <em>{self.classe_I_II_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_I_II_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Plage de fréquences à risque : <em>{self.classe_I_II_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_I_II_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
         elif self.classe == 2:
             self.story.append(Paragraph("Pont de classe : <em>II</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Plage de fréquences dangereuses : <em>{self.classe_I_II_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_I_II_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Plage de fréquences à risque : <em>{self.classe_I_II_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_I_II_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
         elif self.classe == 3:
             self.story.append(Paragraph("Pont de classe : <em>III</em> .", self.styles["Normal"]))
-            self.story.append(Paragraph(f"Plage de fréquences dangereuses : <em>{self.classe_III_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_III_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
+            self.story.append(Paragraph(f"Plage de fréquences à risque : <em>{self.classe_III_verti_longi_lim_basse:.2f} Hz < f(Hz) < {self.classe_III_verti_longi_lim_haute:.2f} Hz</em> .", self.styles["Normal"]))
 
         before_masseSurf = self.masse_surfacique_pietons
 
@@ -3066,7 +3066,7 @@ class Warren():
         )
 
 
-        self.story.append(Paragraph("<u>Note de calcul pont en treillis Warren</u>", self.titleColored))
+        self.story.append(Paragraph("<u>Note de calcul passerelle en treillis Warren</u>", self.titleColored))
 
         self._structure_pont_rapport()
 
@@ -3077,8 +3077,3 @@ class Warren():
         self._analyse_modale_rapport()
         
         self.doc.build(self.story, onFirstPage=self._draw_border, onLaterPages=self._draw_border)
-
-
-
-    
-
