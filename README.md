@@ -2,6 +2,10 @@
 
 Application graphique et librairie de calcul/vérifications de pont de type Warren.
 
+## :inbox_tray: Application éxécutable
+
+Si vous souhaitez utiliser l'application sans regarder son code source, vous pouvez vous dirigez à droite de l'écran dans la catégorie **Releases** pour télécharger l'application.
+
 ## :fr: Description
 
 Cette application permet le pré-dimensionnement de pont Warren et la vérification du respect des normes définies dans le fichier `parameters.json`. On utilise la méthode des éléments finis pour calculer trois types de ponts :
