@@ -4,6 +4,147 @@
 
 Librairie de calcul d'un pont Warren grâce à une classe Warren()
 
+GUIDE D'UTILISATION (de la création du pont jusqu'à la note de calcul)
+======================================================================
+
+0. Fichier parameters.json
+--------------------------
+    Le constructeur lit "parameters.json" dans le RÉPERTOIRE DE LANCEMENT
+    du script (chemin relatif). Clés obligatoires :
+
+        denominateur_fleche_max_Q          flèche max sous Q = L / valeur
+        denominateur_fleche_max_ELS        flèche max ELS    = L / valeur
+        coef_G_ELU, coef_Q_ELU             coefficients de la combinaison ELU
+        sigma_max_ELU                      contrainte admissible (MPa)
+        classe_I_II_verti_longi_lim_basse  plage de fréquences à risque
+        classe_I_II_verti_longi_lim_haute  pour les classes I et II (Hz)
+        classe_III_verti_longi_lim_basse   plage de fréquences à risque
+        classe_III_verti_longi_lim_haute   pour la classe III (Hz)
+
+1. Création de l'objet
+----------------------
+    pont = Warren(Type="rectangle")   # "rectangle", "parabole sym",
+                                      # ou "parabole non sym"
+
+2. Unités d'entrée (À APPELER EN PREMIER)
+-----------------------------------------
+    pont.unites(E="GPa", rho="kg/m^3", section="mm", force="kN")
+
+    La conversion est faite au moment de la saisie : unites() doit être
+    appelée AVANT set_materials_*, set_section_* et set_forces_punc.
+    Unités internes (et par défaut) : E en MPa, rho en kg/m^3,
+    sections en mm, forces en N.
+    Les charges surfaciques (étape 6) sont toujours en kN/m^2.
+
+3. Géométrie
+------------
+    pont.set_structure(L, n, h1=None, h2=None, h3=None)
+
+    L : portée (m)
+    n : nombre de noeuds de la membrure inférieure, appuis compris
+        (n >= 3 pour pouvoir générer la note de calcul)
+
+    Type                h1                 h2                 h3
+    "rectangle"         hauteur            -                  -
+    "parabole sym"      hauteur mi-portée  hauteur extrémités -
+    "parabole non sym"  hauteur mi-portée  extrémité gauche   extrémité droite
+
+    Numérotation des noeuds en zig-zag : pairs en bas, impairs en haut.
+    Le noeud 0 est l'extrémité gauche, le dernier l'extrémité droite.
+    Visualisation : pont.plot_pont_noeuds()
+
+4. Matériaux et sections
+------------------------
+    pont.set_materials_all(E, rho)
+    pont.set_section_all(d, e, h=None, Type="circulaire")
+
+    ou, membrure par membrure :
+        set_materials_bottom / set_section_bottom      (membrure inférieure)
+        set_materials_diagonal / set_section_diagonal  (diagonales)
+        set_materials_top / set_section_top            (membrure supérieure)
+
+    Sections creuses :
+        "circulaire"    : d = diamètre extérieur, e = épaisseur
+        "rectangulaire" : d = longueur, h = largeur (obligatoire), e = épaisseur
+
+    Les TROIS parties doivent avoir un matériau ET une section.
+
+5. Appuis
+---------
+    pont.set_supports({(x, y): "Articulation", (x, y): "Appui simple"})
+
+    "Articulation" : Ux = Uy = 0      "Appui simple" : Uy = 0
+    Les coordonnées doivent correspondre EXACTEMENT à un noeud (flottants).
+    Méthode sûre :
+        pont.set_supports({tuple(pont.nodes_list[0]):  "Articulation",
+                           tuple(pont.nodes_list[-1]): "Appui simple"})
+
+6. Charges et classe de la passerelle
+-------------------------------------
+    pont.set_largeur(largeur)                  # m
+    pont.set_poidsPlancher(G)                  # kN/m^2
+    pont.set_chargeExploitation(Q)             # kN/m^2
+    pont.set_classe_pont(classe)               # 1, 2 ou 3
+    pont.set_masseSurfaciquePietons(m)         # kg/m^2 (hors rapport)
+
+    Chaque treillis reprend une demi-largeur ; les charges sont appliquées
+    aux noeuds de la membrure inférieure (demi-part aux extrémités).
+    Le poids propre des barres est ajouté automatiquement.
+    La masse surfacique piétons n'est pas nécessaire pour le rapport (il
+    calcule lui-même les cas 0 et 70 kg/m^2), mais l'est pour appeler
+    directement freqs_propre, analyse_modale ou masse_modale.
+
+7. Vérifications et affichages (facultatif)
+-------------------------------------------
+    pont.verification_fleche_Q()                -> (flèche en m, bool)
+    pont.verification_fleche_ELS()              -> (flèche en m, bool)
+    pont.verification_contrainte_normale_ELU()  -> (sigma max en MPa, bool)
+    pont.freqs_propre(n)                        -> n premières fréquences (Hz)
+    pont.analyse_modale(n)                      -> liste des modes à risque
+    pont.masse_modale(n)                        -> masses modales et ratios X/Y
+    pont.plot_deplacement_Q(), plot_deplacement_ELS(),
+    plot_contrainte_normale_ELU(), plot_mode_n(m, n)
+
+    Chaque méthode plot_* existe en version ax_plot_*(ax, ...) pour
+    dessiner sur un axe matplotlib donné (utilisé par l'application).
+
+    Mode forces ponctuelles (indépendant du rapport) :
+        pont.set_forces_punc({(x, y): (Fx, Fy)})
+        pont.vecteurDeplacement(), pont.vecteurEfforts()
+        pont.plot_pont(), pont.plot_efforts(), pont.plot_deplacements()
+    Remarque : appeler vecteurDeplacement() avant plot_deplacements().
+
+8. Note de calcul PDF
+---------------------
+    pont.make_report_document("note_de_calcul.pdf")
+
+    Contenu : structure, matériaux et sections (avec schéma du pont),
+    vérifications Eurocode (flèche Q, flèche ELS, contrainte ELU) et
+    analyse modale (6 premiers modes, sans et avec piétons).
+
+
+EXEMPLE COMPLET
+===============
+
+    from warren import Warren
+
+    pont = Warren(Type="parabole sym")
+    pont.unites(E="GPa", rho="kg/m^3", section="mm", force="kN")
+
+    pont.set_structure(L=20, n=6, h1=3.0, h2=1.5)
+    pont.set_materials_all(E=210, rho=7850)
+    pont.set_section_all(d=168.3, e=8, Type="circulaire")
+
+    pont.set_supports({tuple(pont.nodes_list[0]):  "Articulation",
+                       tuple(pont.nodes_list[-1]): "Appui simple"})
+
+    pont.set_largeur(3.0)
+    pont.set_poidsPlancher(1.5)
+    pont.set_chargeExploitation(5.0)
+    pont.set_classe_pont(2)
+
+    pont.make_report_document("note_de_calcul.pdf")
+
 """
 
 
