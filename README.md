@@ -1,10 +1,11 @@
-# :bridge_at_night: Pont Warren — Calculateur
+# :bridge_at_night: Pont Treillis Warren — Calculateur
 
-Application graphique et librairie de calcul/vérifications de pont de type Warren.
+Application graphique et librairie de calcul/vérifications de pont en treillis (type Warren).
+⚠️ Ceci est mon premier projet porté sur github, le code est long et n'est pas forcément très propre. Il manque des commentaires donc ce n'est pas forcément user-friendly mais si besoin je peux essayer de vous aider à comprendre quelque chose ! Le code utilise a la fois de l'anglais et du français (oopsie).
 
 ## :inbox_tray: Application éxécutable
 
-Si vous souhaitez utiliser l'application sans regarder son code source, vous pouvez vous dirigez à droite de l'écran dans la catégorie **Releases** pour télécharger l'application.
+Si vous souhaitez utiliser l'application directement, vous pouvez vous dirigez à droite de l'écran dans la catégorie **Releases** pour télécharger l'application.
 
 ## :fr: Description
 
@@ -24,13 +25,11 @@ Cette application permet le pré-dimensionnement de pont Warren et la vérificat
   - `scipy`
   - `reportlab`
 
-## :round_pushpin: Installation
-
 ```bash
 pip install PySide6 matplotlib numpy scipy reportlab
 ```
 
-Le fichier `parameters.json` et `Warren_lib.py`doivent être dans le même dossier que le fichier `interface_PySide6.py`.
+**⚠️ Le fichier `parameters.json` et `Warren_lib.py`doivent être dans le même dossier que le fichier `interface_PySide6.py`.**
 
 ## Utilisation
 
