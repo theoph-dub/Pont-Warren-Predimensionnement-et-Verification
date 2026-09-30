@@ -765,7 +765,7 @@ class Warren():
 
         Parameters
         ----------
-        dict : dict
+        forces : dict
             keys : tuple avec les coordonnées du noeud (x, y) en m
             values : puissance de la force (Fx, Fy) en N  
 
