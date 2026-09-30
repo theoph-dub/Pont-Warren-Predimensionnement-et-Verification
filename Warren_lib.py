@@ -2915,7 +2915,7 @@ class Warren():
                             Paragraph(f"Module d'élasticité : <em>{self.E_vector[0]} MPa</em> .")]
         elif self.section_bot_type == "rectangulaire":
             membrure_bot = [title_bot,
-                            Paragraph(f"Section circulaire (lxhxe) : <em>{self.d_bot}x{self.h_bot}x{self.e_bot} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Section rectangulaire (lxhxe) : <em>{self.d_bot}x{self.h_bot}x{self.e_bot} mm</em> .", self.styles["Normal"]),
                             Paragraph(f"Masse volumique : <em>{self.rho_vector[0]} kg/m<super>3</super></em> ."),
                             Paragraph(f"Module d'élasticité : <em>{self.E_vector[0]} MPa</em> .")]
 
@@ -2926,7 +2926,7 @@ class Warren():
                             Paragraph(f"Module d'élasticité : <em>{self.E_vector[1]} MPa</em> .")]
         elif self.section_mid_type == "rectangulaire":
             membrure_mid = [title_mid,
-                            Paragraph(f"Section circulaire (lxhxe) : <em>{self.d_mid}x{self.h_mid}x{self.e_mid} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Section rectangulaire (lxhxe) : <em>{self.d_mid}x{self.h_mid}x{self.e_mid} mm</em> .", self.styles["Normal"]),
                             Paragraph(f"Masse volumique : <em>{self.rho_vector[1]} kg/m<super>3</super></em> ."),
                             Paragraph(f"Module d'élasticité : <em>{self.E_vector[1]} MPa</em> .")]
 
@@ -2937,7 +2937,7 @@ class Warren():
                             Paragraph(f"Module d'élasticité : <em>{self.E_vector[2]} MPa</em> .")]
         elif self.section_sup_type == "rectangulaire":
             membrure_sup = [title_sup,
-                            Paragraph(f"Section circulaire (lxhxe) : <em>{self.d_sup}x{self.h_sup}x{self.e_sup} mm</em> .", self.styles["Normal"]),
+                            Paragraph(f"Section rectangulaire (lxhxe) : <em>{self.d_sup}x{self.h_sup}x{self.e_sup} mm</em> .", self.styles["Normal"]),
                             Paragraph(f"Masse volumique : <em>{self.rho_vector[2]} kg/m<super>3</super></em> ."),
                             Paragraph(f"Module d'élasticité : <em>{self.E_vector[2]} MPa</em> .")]
             
