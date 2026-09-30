@@ -79,6 +79,20 @@ GUIDE D'UTILISATION (de la création du pont jusqu'à la note de calcul)
         pont.set_supports({tuple(pont.nodes_list[0]):  "Articulation",
                            tuple(pont.nodes_list[-1]): "Appui simple"})
 
+5.1 Utilisation optionnelle : forces ponctuelles
+------------------------------------------------
+    pont.set_forces_punc({(x, y): F, (x, y): F})
+
+    (x,y) : coordonnée du noeud sur lequelle appliquer la force
+    F : valeur de la force selon l'unité choisie
+    Les coordonnées doivent correspondre EXACTEMENT à un noeud (flottants).
+
+5.2 Utilisation optionnelle : Affichage du déplacement pont ainsi que les efforts qu'il subit selon les forces définies
+------------------------------------------------------------------------------------------------------------------------
+
+    pont.plot_efforts()
+    pont.plot_deplacements()
+
 6. Charges et classe de la passerelle
 -------------------------------------
     pont.set_largeur(largeur)                  # m
