@@ -2,7 +2,7 @@
 
 Application graphique et librairie de calcul/vérifications de pont en treillis (type Warren).
 
-⚠️ Ceci est mon premier projet porté sur github, le code est long et n'est pas forcément très propre. Il manque des commentaires donc ce n'est pas forcément user-friendly mais si besoin je peux essayer de vous aider à comprendre quelque chose ! Le code utilise a la fois de l'anglais et du français (oopsie). ⚠️
+⚠️ Ceci est mon premier projet porté sur github, le code est long et n'est pas forcément très propre. Il manque des commentaires donc ce n'est pas forcément user-friendly mais si besoin je peux essayer de vous aider à comprendre quelque chose ! Le code utilise a la fois de l'anglais et du français et différents types de format des noms de fonctions. ⚠️
 
 ## :inbox_tray: Application éxécutable
 
